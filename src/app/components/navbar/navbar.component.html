@@ -1,11 +1,32 @@
 <header class="bg-white shadow fixed top-0 w-full z-10">
   <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
     <h1 class="text-xl font-bold text-pink-600">The Workshed</h1>
-    <nav class="space-x-4 text-sm">
+
+    <!-- Botón hamburguesa para móviles -->
+    <button class="md:hidden text-gray-600 focus:outline-none" (click)="toggleMenu()">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+
+    <!-- Menú principal (desktop) -->
+    <nav class="hidden md:flex space-x-4 text-sm">
       <a href="#" class="text-gray-600 hover:text-pink-600">Home</a>
       <a href="#who-we-are" class="text-gray-600 hover:text-pink-600">Who We Are</a>
       <a href="#what-we-offer" class="text-gray-600 hover:text-pink-600">What We Offer</a>
       <a href="#get-involved" class="text-gray-600 hover:text-pink-600">Get Involved</a>
     </nav>
+  </div>
+
+  <!-- Menú desplegable (solo móviles, alineado a la derecha) -->
+  <div
+    *ngIf="isMenuOpen"
+    class="md:hidden px-4 pb-4 space-y-2 text-sm bg-white shadow text-right"
+  >
+    <a href="#" class="block text-gray-600 hover:text-pink-600">Home</a>
+    <a href="#who-we-are" class="block text-gray-600 hover:text-pink-600">Who We Are</a>
+    <a href="#what-we-offer" class="block text-gray-600 hover:text-pink-600">What We Offer</a>
+    <a href="#get-involved" class="block text-gray-600 hover:text-pink-600">Get Involved</a>
   </div>
 </header>
