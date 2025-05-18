@@ -1,0 +1,32 @@
+<div class="max-w-3xl mx-auto p-6">
+  <!--<h2 class="text-2xl font-bold text-pink-700 mb-2">Welcome, {{ username }}!</h2>-->
+  <div class="p-6 text-center">
+    <h2 class="text-2xl font-semibold text-pink-600">
+      Welcome back, {{ username }} <span class="text-gray-500">({{ role | titlecase }})</span>
+    </h2>
+  </div>
+  <p class="text-gray-700 mb-6">Email: {{ email }}</p>
+
+  <!-- Opciones por rol -->
+  <div *ngIf="isAdmin()" class="mb-4">
+    <p class="font-semibold">Admin Options:</p>
+    <ul class="list-disc list-inside">
+      <li><a routerLink="/contacts">Manage Contacts</a></li>
+      <li><a routerLink="/volunteers">Manage Volunteers</a></li>
+    </ul>
+  </div>
+
+  <div *ngIf="isStaff()" class="mb-4">
+    <p class="font-semibold">Staff Options:</p>
+    <ul class="list-disc list-inside">
+      <li><a routerLink="/volunteers">Volunteer Access</a></li>
+    </ul>
+  </div>
+
+  <div *ngIf="isVolunteer()" class="mb-4">
+    <p class="font-semibold">Volunteer Options:</p>
+    <ul class="list-disc list-inside">
+      <li>Your assigned programs will appear here.</li>
+    </ul>
+  </div>
+</div>

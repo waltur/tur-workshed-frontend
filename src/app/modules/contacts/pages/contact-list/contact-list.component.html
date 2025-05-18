@@ -1,0 +1,38 @@
+<div class="max-w-5xl mx-auto p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-pink-600">Contacts</h2>
+    <a routerLink="/contacts/new" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">
+      + New Contact
+    </a>
+  </div>
+
+  <table class="w-full table-auto border-collapse">
+    <thead class="bg-gray-100">
+    <tr>
+      <th class="text-left p-2">Name</th>
+      <th class="text-left p-2">Email</th>
+      <th class="text-left p-2">Phone</th>
+      <th class="text-left p-2">Type</th>
+      <th class="text-left p-2">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let contact of contacts" class="border-t">
+      <td class="p-2">{{ contact.name }}</td>
+      <td class="p-2">{{ contact.email }}</td>
+      <td class="p-2">{{ contact.phone_number }}</td>
+      <td class="p-2">{{ contact.type }}</td>
+      <td class="p-2">
+        <a [routerLink]="['/contacts/edit', contact.id_contact]"
+           class="text-blue-600 hover:underline text-sm">
+          Edit
+        </a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="contacts.length === 0" class="text-center text-gray-500 mt-6">
+    No contacts found.
+  </div>
+</div>
