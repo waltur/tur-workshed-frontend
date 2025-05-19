@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,6 +39,9 @@ export class AuthService {
      return [];
    }
  }
+ isAdmin(): boolean {
+   return this.getUserRoles().includes('admin');
+ }
  getUserInfo(): { username: string; email: string; roles: string[] } | null {
    const token = this.getToken();
    if (!token) return null;
@@ -66,11 +70,14 @@ export class AuthService {
       return localStorage.getItem(this.tokenKey);
     }
 
-    register(username: string, email: string, password: string) {
-    return this.http.post(`${this.apiUrl}/register`, {
-      username,
-      email,
-      password
-    });
+  register(data: any) {
+    return this.http.post(`${this.apiUrl}/register`, data);
   }
+checkEmail(email: string) {
+  return this.http.get<{ exists: boolean }>(`${this.apiUrl}/check-email?email=${encodeURIComponent(email)}`);
+}
+checkUsername(username: string) {
+  return this.http.get<{ exists: boolean }>(`${this.apiUrl}/check-username?username=${encodeURIComponent(username)}`);
+}
+
 }
