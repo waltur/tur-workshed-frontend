@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 export interface Volunteer {
   idVolunter?: number;
@@ -19,7 +20,8 @@ export interface Volunteer {
   providedIn: 'root'
 })
 export class VolunteerService {
-  private apiUrl = 'http://localhost:3000/api/volunteers';
+ // private apiUrl = 'http://localhost:3000/api/volunteers';
+  private apiUrl = `${environment.apiUrl}/volunteers`;
 
   constructor(private http: HttpClient) {}
 
