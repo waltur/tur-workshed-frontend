@@ -30,6 +30,7 @@
     <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="text-pink-600 font-semibold">Dashboard</a>
     <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="text-gray-600 hover:text-pink-600">Login</a>
     <a routerLink="/volunteers" class="block text-pink-600 font-semibold">Volunteers</a>
+    <a routerLink="/contacts" class="block text-pink-600 font-semibold">Contacts</a>
   </nav>
 
   <!-- Menú móvil -->
@@ -41,6 +42,7 @@
     <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="block text-pink-600 font-semibold">Dashboard</a>
     <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="block text-gray-600 hover:text-pink-600">Login</a>
     <a routerLink="/volunteers" class="block text-pink-600 font-semibold">Volunteers</a>
+    <a routerLink="/contacts" class="block text-pink-600 font-semibold">Contacts</a>
     <div *ngIf="authService.isLoggedIn()" class="mt-2 text-right">
       <span class="text-sm text-gray-600 block">Welcome, {{ userInfo?.username }}</span>
       <button (click)="logout()" class="mt-1 bg-pink-600 text-white px-3 py-1 rounded text-sm">
