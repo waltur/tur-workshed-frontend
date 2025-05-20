@@ -1,0 +1,27 @@
+<div class="max-w-6xl mx-auto p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-pink-600">Users</h2>
+    <a routerLink="/admin/users/new" class="bg-pink-600 text-white px-4 py-2 rounded">+ New User</a>
+  </div>
+
+  <table class="w-full table-auto border-collapse">
+    <thead>
+    <tr class="bg-gray-100">
+      <th class="text-left p-2">Username</th>
+      <th>Email</th>
+      <th>Roles</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let user of users" class="border-t">
+      <td class="p-2">{{ user.username }}</td>
+      <td class="p-2">{{ user.email }}</td>
+      <td class="p-2">{{ user.roles?.join(', ') }}</td>
+      <td class="p-2">
+        <a [routerLink]="['/admin/users/edit', user.id]" class="text-blue-600 hover:underline text-sm">Edit</a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
