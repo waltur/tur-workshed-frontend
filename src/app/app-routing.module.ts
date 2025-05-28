@@ -11,7 +11,7 @@ const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'volunteers',canActivate: [AuthGuard], loadChildren: () => import('./modules/volunteers/volunteers.module').then(m => m.VolunteersModule)},
   { path: 'contacts',   loadChildren: () => import('./modules/contacts/contacts.module').then(m => m.ContactsModule)},
-  { path: 'admin', loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule) },
+  { path: 'admin',canActivate: [AuthGuard], loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule) },
   { path: '**', redirectTo: '' }
   ];
 

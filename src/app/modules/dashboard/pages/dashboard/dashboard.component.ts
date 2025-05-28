@@ -11,6 +11,7 @@ export class DashboardComponent {
     username = '';
     email = '';
     role = '';
+    userInfoText = '';
 
     constructor(private authService: AuthService) {
       //this.roles = this.authService.getUserRoles();
@@ -22,6 +23,15 @@ export class DashboardComponent {
             this.role=userInfo.roles[0];
           }
     }
+ ngOnInit(): void {
+   const user = this.authService.getUserInfo();
+   if (user) {
+     this.userInfoText =
+       `Name: ${user.username}\n` +
+       `Email: ${user.email}\n` +
+       `Roles: ${user.roles.join(', ')}`;
+   }
+ }
 
     isAdmin(): boolean {
       return this.roles.includes('admin');

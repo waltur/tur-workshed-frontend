@@ -10,15 +10,21 @@ export class AuthGuard implements CanActivate {
 
 constructor(private authService: AuthService, private router: Router) {}
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): boolean | UrlTree {
-    if (this.authService.isLoggedIn()) {
-      return true;
+ canActivate(route: ActivatedRouteSnapshot): boolean {
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return false;
     }
 
-    return this.router.parseUrl('/login');
+    // Si la ruta comienza con /admin, verificar que tenga rol admin
+    if (route.routeConfig?.path === 'admin' || route.parent?.routeConfig?.path === 'admin') {
+      if (!this.authService.getUserRoles().includes('Admin')) {
+        this.router.navigate(['/']);
+        return false;
+      }
+    }
+
+    return true;
   }
 
 }

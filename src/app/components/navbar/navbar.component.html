@@ -6,7 +6,7 @@
 
     <!-- Usuario y Logout (solo si logueado) -->
     <div *ngIf="authService.isLoggedIn()" class="hidden md:flex items-center gap-3">
-      <span class="text-sm text-gray-700">Welcome, {{ userInfo?.username }}</span>
+      <span *ngIf="userInfo">Welcome, {{ userInfo.username }}</span>
       <button (click)="logout()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-sm">
         Logout
       </button>
@@ -23,28 +23,55 @@
 
   <!-- Menú navegación escritorio -->
   <nav class="hidden md:flex justify-center space-x-4 pb-3 text-sm border-t border-gray-100">
-    <a routerLink="/" class="text-gray-600 hover:text-pink-600">Home</a>
+    <a routerLink="/" routerLinkActive="text-pink-600 font-semibold underline"
+       [routerLinkActiveOptions]="{ exact: true }" class="text-gray-600 hover:text-pink-600">Home</a>
+
     <a href="#who-we-are" class="text-gray-600 hover:text-pink-600">Who We Are</a>
     <a href="#what-we-offer" class="text-gray-600 hover:text-pink-600">What We Offer</a>
     <a href="#get-involved" class="text-gray-600 hover:text-pink-600">Get Involved</a>
-    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="text-pink-600 font-semibold">Dashboard</a>
-    <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="text-gray-600 hover:text-pink-600">Login</a>
-    <!--<a routerLink="/volunteers" class="block text-pink-600 font-semibold">Volunteers</a>
-    <a routerLink="/contacts" class="block text-pink-600 font-semibold">Contacts</a>-->
-  </nav>
+
+    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="text-gray-600 hover:text-pink-600">Dashboard</a>
+
+    <a *ngIf="!authService.isLoggedIn()" routerLink="/login"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="text-gray-600 hover:text-pink-600">Login</a>
+
+    <a *ngIf="isAdmin()" routerLink="/admin/users"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="text-gray-600 hover:text-pink-600">Admin</a>
+
+    <a *ngIf="isAdmin() || isVolunteer()" routerLink="/volunteers"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="text-gray-600 hover:text-pink-600">Volunteers</a>  </nav>
 
   <!-- Menú móvil -->
   <div *ngIf="isMenuOpen" class="md:hidden px-4 pb-4 space-y-2 text-sm bg-white shadow text-right border-t">
-    <a routerLink="/" class="block text-gray-600 hover:text-pink-600">Home</a>
+    <a routerLink="/" routerLinkActive="text-pink-600 font-semibold underline"
+       [routerLinkActiveOptions]="{ exact: true }" class="block text-gray-600 hover:text-pink-600">Home</a>
+
     <a href="#who-we-are" class="block text-gray-600 hover:text-pink-600">Who We Are</a>
     <a href="#what-we-offer" class="block text-gray-600 hover:text-pink-600">What We Offer</a>
     <a href="#get-involved" class="block text-gray-600 hover:text-pink-600">Get Involved</a>
-    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="block text-pink-600 font-semibold">Dashboard</a>
-    <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="block text-gray-600 hover:text-pink-600">Login</a>
-    <!--<a routerLink="/volunteers" class="block text-pink-600 font-semibold">Volunteers</a>
-    <a routerLink="/contacts" class="block text-pink-600 font-semibold">Contacts</a>-->
+
+    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="block text-gray-600 hover:text-pink-600">Dashboard</a>
+
+    <a *ngIf="!authService.isLoggedIn()" routerLink="/login"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="block text-gray-600 hover:text-pink-600">Login</a>
+
+    <a *ngIf="isAdmin()" routerLink="/admin/users"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="block text-gray-600 hover:text-pink-600">Admin</a>
+
+    <a *ngIf="isAdmin() || isVolunteer()" routerLink="/volunteers"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="block text-gray-600 hover:text-pink-600">Volunteers</a>
     <div *ngIf="authService.isLoggedIn()" class="mt-2 text-right">
-      <span class="text-sm text-gray-600 block">Welcome, {{ userInfo?.username }}</span>
+      <span *ngIf="userInfo">Welcome, {{ userInfo.username }}</span>
       <button (click)="logout()" class="mt-1 bg-pink-600 text-white px-3 py-1 rounded text-sm">
         Logout
       </button>

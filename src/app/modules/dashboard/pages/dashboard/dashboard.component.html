@@ -29,4 +29,10 @@
       <li>Your assigned programs will appear here.</li>
     </ul>
   </div>
+  <div class="mt-6">
+    <h2 class="text-lg font-semibold text-pink-600 mb-2">Your QR Code</h2>
+    <div style="width: 200px; height: 200px;">
+      <qrcode [qrdata]="userInfoText" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+    </div>
+  </div>
 </div>

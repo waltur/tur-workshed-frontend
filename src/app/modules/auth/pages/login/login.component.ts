@@ -40,11 +40,11 @@ loginForm!: FormGroup;
      next: () => {
        const roles = this.authService.getUserRoles();
 
-       if (roles.includes('admin')) {
+       if (roles.includes('Admin')) {
+         this.router.navigate(['/admin']);
+       } else if (roles.includes('Staff')) {
          this.router.navigate(['/dashboard']);
-       } else if (roles.includes('staff')) {
-         this.router.navigate(['/dashboard']);
-       } else if (roles.includes('volunteer')) {
+       } else if (roles.includes('Volunteer')) {
          this.router.navigate(['/volunteers']);
        } else {
          this.router.navigate(['/']);

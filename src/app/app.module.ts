@@ -7,9 +7,10 @@ import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HomeComponent } from './pages/home/home.component';
-//import { DashboardComponent } from './modules/dashboard/pages/dashboard/dashboard.component';
-//import { LoginComponent } from './modules/auth/pages/login/login.component';
-//import { ContactFormComponent } from './modules/contacts/pages/contact-form/contact-form.component';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
+
+
 
 
 @NgModule({
@@ -26,9 +27,16 @@ import { HomeComponent } from './pages/home/home.component';
     BrowserModule,
     AppRoutingModule,
     RouterModule,
-    HttpClientModule
+    HttpClientModule,
+
+
+
   ],
-  providers: [],
+  providers: [ {
+                  provide: HTTP_INTERCEPTORS,
+                  useClass: TokenRefreshInterceptor,
+                  multi: true
+                }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
