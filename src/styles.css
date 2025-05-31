@@ -8,3 +8,9 @@
   background-position: center;
   background-repeat: no-repeat;
 }
+::ng-deep .cal-month-view .cal-event {
+  white-space: normal;
+  height: auto;
+  overflow: visible;
+  font-size: 12px;
+}

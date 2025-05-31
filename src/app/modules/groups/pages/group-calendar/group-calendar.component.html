@@ -1,0 +1,220 @@
+<div class="max-w-6xl mx-auto mt-8 p-6 bg-white shadow rounded-lg">
+  <div class="flex justify-between items-center mb-4">
+    <div class="mb-4 flex items-center gap-4">
+      <label class="text-sm font-medium text-gray-700">Filter by group:</label>
+      <select
+        [(ngModel)]="selectedGroupId"
+        (change)="onGroupChange()"
+        class="border px-3 py-1 rounded text-sm"
+      >
+        <option [ngValue]="null">All</option>
+        <option *ngFor="let group of groups" [ngValue]="group.id_group">
+          {{ group.name }}
+        </option>
+      </select>
+    </div>
+    <h2 class="text-2xl font-bold text-pink-600">Community Event Calendar</h2>
+    <div class="flex gap-2">
+      <button
+        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        (click)="view = CalendarView.Month"
+        [class.opacity-75]="view !== CalendarView.Month"
+      >
+        Month
+      </button>
+      <button
+        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        (click)="view = CalendarView.Week"
+        [class.opacity-75]="view !== CalendarView.Week"
+      >
+        Week
+      </button>
+      <button
+        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        (click)="view = CalendarView.Day"
+        [class.opacity-75]="view !== CalendarView.Day"
+      >
+        Day
+      </button>
+      <button (click)="today()" class="bg-gray-200 text-sm px-2 py-1 rounded">
+        Today
+      </button>
+      <button (click)="prev()" class="bg-gray-200 text-sm px-2 py-1 rounded">«</button>
+      <button (click)="next()" class="bg-gray-200 text-sm px-2 py-1 rounded">»</button>
+    </div>
+  </div>
+  <!--<div class="calendar-header">
+    <button (click)="previousMonth()">&lt;</button>
+    <span class="calendar-title">{{ viewDate | date: 'MMMM yyyy' }}</span>
+    <button (click)="nextMonth()">&gt;</button>
+  </div>-->
+  <div class="calendar-container">
+    <mwl-calendar-month-view
+      *ngIf="view === CalendarView.Month"
+      [viewDate]="viewDate"
+      [events]="events"
+      [activeDayIsOpen]="activeDayIsOpen"
+      (dayClicked)="dayClicked($event.day)"
+      (eventClicked)="handleEvent($event.event)"
+      [refresh]="refresh"
+      [cellTemplate]="customMonthCellTemplate"
+    >
+      <ng-template #customMonthCellTemplate let-day="day">
+        <div class="cal-cell-top">{{ day.date | date: 'd' }}</div>
+        <div *ngFor="let event of day.events" class="custom-event-box">
+          <div class="event-title">
+            📌 {{ event.title }}
+          </div>
+          <div class="event-group">
+            👥 {{ event.meta?.group }}
+          </div>
+          <div class="event-roles" *ngIf="event.meta?.registration_roles?.length">
+            🏷️
+            <span *ngFor="let role of event.meta.registration_roles" class="role-badge">{{ role }}</span>
+          </div>
+        </div>
+      </ng-template>
+    </mwl-calendar-month-view>
+    <!-- Botón para abrir modal cuando el día está activo -->
+    <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-end">
+      <button class="btn btn-outline-primary" (click)="openNewEventModal()">
+        + Add Event on {{ selectedDate | date:'fullDate' }}
+      </button>
+    </div>
+
+    <mwl-calendar-week-view
+      *ngIf="view === CalendarView.Week"
+      [viewDate]="viewDate"
+      [events]="events"
+      [refresh]="refresh"
+      (eventClicked)="handleEvent($event.event)"
+    >
+    </mwl-calendar-week-view>
+
+    <mwl-calendar-day-view
+      *ngIf="view === CalendarView.Day"
+      [viewDate]="viewDate"
+      [events]="events"
+      [refresh]="refresh"
+      (eventClicked)="handleEvent($event.event)"
+    >
+    </mwl-calendar-day-view>
+  </div>
+
+  <div *ngIf="activeDayIsOpen" class="mt-6 border-t pt-4">
+    <h3 class="text-lg font-semibold text-pink-600 mb-2">
+      Events on {{ viewDate | date: 'fullDate' }}
+    </h3>
+    <ul>
+      <li *ngFor="let e of getEventsForSelectedDay()">
+        <div
+          class="flex justify-between items-center p-3 border rounded-lg my-2 shadow-sm"
+        >
+          <div>
+            <div class="font-medium text-gray-800">{{ e.title }}</div>
+            <div class="text-sm text-gray-500">{{ e.meta?.description }}</div>
+            <span *ngIf="e.meta?.registration_roles?.length" class="ml-2 text-green-600 text-xs font-semibold">
+  • Registered as: {{ e.meta.registration_roles.join(', ') }}
+</span>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="registerAsAttendee(e)"
+              class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+            >
+              I'm attending
+            </button>
+            <button
+              *ngIf="canTeach()"
+              (click)="registerAsInstructor(e)"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+            >
+              Teach
+            </button>
+            <button
+              *ngIf="isGeneralSupportVolunteer()"
+              (click)="registerAsHelper(e)"
+              class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">
+              Help as Support
+            </button>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+<ng-template #eventDetails let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ selectedEvent?.title }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+
+  <div class="modal-body">
+    <p><strong>Description:</strong> {{ selectedEvent?.meta?.description }}</p>
+    <p><strong>Group:</strong> {{ selectedEvent?.meta?.group }}</p>
+    <p><strong>Start Date:</strong> {{ selectedEvent?.start | date:'fullDate' }}</p>
+    <p><strong>End Date:</strong> {{ selectedEvent?.end | date:'fullDate' }}</p>
+  </div>
+
+  <div class="modal-footer">
+    <!-- Para todos los miembros -->
+    <button *ngIf="isMember()" class="btn btn-primary" (click)="registerAsAttendee(selectedEvent)">
+      Register as Student
+    </button>
+
+    <!-- Para voluntarios con rol General Support -->
+    <button *ngIf="isGeneralSupportVolunteer()" class="btn btn-warning" (click)="registerAsHelper(selectedEvent)">
+      Register as General Support
+    </button>
+
+    <!-- Ya existente para instructores -->
+    <button *ngIf="canTeach()" class="btn btn-success" (click)="registerAsInstructor(selectedEvent)">
+      Register as Instructor
+    </button>
+
+    <button class="btn btn-secondary" (click)="modal.dismiss()">Close</button>
+  </div>
+</ng-template>
+<ng-template #newEventModal  let-modal>
+  <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
+    <h2 class="text-xl font-bold text-pink-600 mb-4">Create New Event</h2>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Group</label>
+        <select [(ngModel)]="newEvent.id_group" class="w-full border rounded px-3 py-2 mt-1">
+          <option [value]="null" disabled>Select a group</option>
+          <option *ngFor="let group of groups" [value]="group.id_group">
+            {{ group.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Title</label>
+        <input type="text" [(ngModel)]="newEvent.title" class="w-full border rounded px-3 py-2 mt-1" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <textarea [(ngModel)]="newEvent.description" class="w-full border rounded px-3 py-2 mt-1"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Start</label>
+          <input type="datetime-local" [(ngModel)]="newEvent.start" class="w-full border rounded px-3 py-2 mt-1" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">End</label>
+          <input type="datetime-local" [(ngModel)]="newEvent.end" class="w-full border rounded px-3 py-2 mt-1" />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+      <button class="bg-gray-200 px-4 py-2 rounded" (click)="modal.dismiss()">Cancel</button>
+      <button class="bg-pink-600 text-white px-4 py-2 rounded" (click)="createEvent()">Create</button>
+    </div>
+  </div>
+</ng-template>

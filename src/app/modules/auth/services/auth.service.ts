@@ -59,6 +59,10 @@ export class AuthService {
     return this.getUserRoles().includes('Admin');
   }
 
+ isMember(): boolean {
+    return this.getUserRoles().includes('Member');
+  }
+
   getUserInfo(): UserInfo | null {
     const token = this.getToken();
     if (!token) return null;
@@ -132,4 +136,30 @@ export class AuthService {
     localStorage.setItem(this.tokenKey, token);
     this.updateUserInfo();
   }
+
+  hasJobRole(roleName: string): boolean {
+    console.log("hasJobRole");
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const jobRoles: string[] = payload.job_roles || []; // asegurarte que el token contenga esto
+      return jobRoles.map(r => r.toLowerCase()).includes(roleName.toLowerCase());
+    } catch {
+      return false;
+    }
+  }
+
+getContactId(): number | null {
+  const token = this.getToken();
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.contact_id || null;
+  } catch {
+    return null;
+  }
+}
 }

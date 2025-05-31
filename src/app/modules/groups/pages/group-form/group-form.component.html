@@ -1,0 +1,29 @@
+<div class="max-w-xl mx-auto p-6 bg-white shadow rounded">
+  <h2 class="text-lg font-semibold text-pink-600 mb-4">
+    {{ isEdit ? 'Edit Group' : 'Create Group' }}
+  </h2>
+
+  <form (ngSubmit)="submit()">
+    <div class="mb-4">
+      <label class="block mb-1 text-sm font-medium">Name</label>
+      <input [(ngModel)]="group.name" name="name" class="w-full border p-2 rounded" required />
+    </div>
+
+    <div class="mb-4">
+      <label class="block mb-1 text-sm font-medium">Category</label>
+      <input [(ngModel)]="group.category" name="category" class="w-full border p-2 rounded" />
+    </div>
+
+    <div class="mb-4">
+      <label class="block mb-1 text-sm font-medium">Description</label>
+      <textarea [(ngModel)]="group.description" name="description" class="w-full border p-2 rounded"></textarea>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <a routerLink="/groups" class="bg-gray-200 px-4 py-2 rounded">Cancel</a>
+      <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
+    </div>
+  </form>
+</div>

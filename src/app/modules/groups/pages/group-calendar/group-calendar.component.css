@@ -1,0 +1,32 @@
+::ng-deep .custom-event-box {
+  background-color: #10B98120;
+  border-left: 4px solid #10B981;
+  margin-bottom: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+::ng-deep .event-title {
+  font-weight: 600;
+  color: #065f46;
+}
+
+::ng-deep .event-group {
+  color: #047857;
+  font-style: italic;
+}
+
+::ng-deep .event-roles {
+  margin-top: 2px;
+}
+
+::ng-deep .role-badge {
+  background-color: #6ee7b7;
+  color: #065f46;
+  padding: 2px 6px;
+  margin-right: 4px;
+  border-radius: 8px;
+  font-size: 11px;
+  display: inline-block;
+}

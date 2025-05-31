@@ -1,0 +1,37 @@
+<div class="max-w-3xl mx-auto p-6">
+  <h2 class="text-xl font-bold text-pink-600 mb-4">Timesheets</h2>
+
+  <div class="mb-4 grid grid-cols-2 gap-4">
+    <select [(ngModel)]="sheet.id_contact" class="border p-2 w-full">
+      <option *ngFor="let c of contacts" [value]="c.id_contact">
+        {{ c.name }} ({{ c.email }})
+      </option>
+    </select>
+    <input [(ngModel)]="sheet.hours" type="number" placeholder="Hours" class="border p-2 w-full" />
+    <input [(ngModel)]="sheet.activity" placeholder="Activity" class="col-span-2 border p-2 w-full" />
+  </div>
+
+  <button (click)="submitSheet()" class="bg-pink-600 text-white px-4 py-2 rounded">Log Time</button>
+
+  <div class="mt-6">
+    <h3 class="font-semibold mb-2">Logged Time</h3>
+    <table class="w-full table-auto border-collapse">
+      <thead>
+      <tr class="bg-gray-100">
+        <th class="text-left p-2">Name</th>
+        <th class="text-left p-2">Hours</th>
+        <th class="text-left p-2">Activity</th>
+        <th class="text-left p-2">Date</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let ts of timesheets" class="border-t">
+        <td class="p-2">{{ ts.name }}</td>
+        <td class="p-2">{{ ts.hours }}</td>
+        <td class="p-2">{{ ts.activity }}</td>
+        <td class="p-2">{{ ts.date_logged | date }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

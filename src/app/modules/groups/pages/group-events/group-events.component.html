@@ -1,0 +1,25 @@
+<div class="max-w-4xl mx-auto p-6">
+  <h2 class="text-xl font-bold text-pink-600 mb-4">Group Events</h2>
+
+  <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <input [(ngModel)]="event.title" placeholder="Title" class="border p-2 w-full" />
+    <input [(ngModel)]="event.event_date" type="date" class="border p-2 w-full" />
+    <input [(ngModel)]="event.location" placeholder="Location" class="border p-2 w-full" />
+    <input [(ngModel)]="event.description" placeholder="Description" class="border p-2 w-full" />
+  </div>
+  <button (click)="addEvent()" class="bg-pink-600 text-white px-4 py-2 rounded">Add Event</button>
+
+  <div class="mt-6">
+    <h3 class="font-semibold mb-2">Event List</h3>
+    <ul>
+      <li *ngFor="let ev of events" class="border-b py-2 flex justify-between items-center">
+        <div>
+          <div class="font-medium">{{ ev.title }}</div>
+          <div class="text-sm text-gray-500">{{ ev.event_date }} — {{ ev.location }}</div>
+        </div>
+        <a [routerLink]="['/groups/event', ev.id_event, 'timesheets']"
+           class="text-blue-600 hover:underline text-sm">Timesheets</a>
+      </li>
+    </ul>
+  </div>
+</div>

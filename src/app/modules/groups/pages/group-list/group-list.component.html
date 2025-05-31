@@ -1,0 +1,25 @@
+<div class="max-w-4xl mx-auto p-6">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-pink-600">Groups</h2>
+    <a routerLink="/groups/new" class="bg-pink-600 text-white px-4 py-2 rounded">+ New Group</a>
+  </div>
+
+  <table class="w-full table-auto border-collapse">
+    <thead>
+    <tr class="bg-gray-100">
+      <th class="text-left p-2">Name</th>
+      <th class="text-left p-2">Category</th>
+      <th class="text-left p-2">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let group of groups" class="border-t">
+      <td class="p-2">{{ group.name }}</td>
+      <td class="p-2">{{ group.category }}</td>
+      <td class="p-2">
+        <a [routerLink]="['/groups/edit', group.id_group]" class="text-blue-600 hover:underline">Edit</a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

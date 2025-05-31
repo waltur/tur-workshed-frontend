@@ -9,6 +9,7 @@ import { FooterComponent } from './components/footer/footer.component';
 import { HomeComponent } from './pages/home/home.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 
 
@@ -28,6 +29,7 @@ import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
     AppRoutingModule,
     RouterModule,
     HttpClientModule,
+    BrowserAnimationsModule
 
 
 
