@@ -5,6 +5,14 @@
       Welcome back, {{ username }} <span class="text-gray-500">({{ role | titlecase }})</span>
     </h2>
   </div>
+  <div *ngIf="canChangePassword" class="mt-6 text-center">
+    <button
+      class="text-sm text-blue-600 font-medium hover:underline"
+      (click)="openChangePasswordDialog()"
+    >
+      Change Password
+    </button>
+  </div>
   <p class="text-gray-700 mb-6">Email: {{ email }}</p>
 
   <!-- Opciones por rol -->

@@ -1,3 +1,4 @@
+<div class="container mt-5">
 <div class="max-w-3xl mx-auto p-6 bg-white shadow rounded">
   <h2 class="text-xl font-semibold text-pink-600 mb-4">
     {{ mode === 'edit' ? 'Edit User' : 'Create New User' }}
@@ -9,6 +10,10 @@
   <div *ngIf="!loadingUser">
   <form [formGroup]="userForm" (ngSubmit)="submit()">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <label class="block mb-4">
+        <span class="text-sm font-medium text-gray-700">Full Name</span>
+        <input type="text" formControlName="name" class="border rounded px-3 py-2 w-full" />
+      </label>
       <div>
         <label class="text-sm font-medium text-gray-700">Username</label>
         <input formControlName="username" class="border rounded px-3 py-2 w-full" />
@@ -17,6 +22,10 @@
         <label class="text-sm font-medium text-gray-700">Email</label>
         <input formControlName="email" class="border rounded px-3 py-2 w-full" />
       </div>
+      <label class="block mb-4">
+        <span class="text-sm font-mediumtext-gray-700">Phone Number</span>
+        <input type="text" formControlName="phone_number" class="border rounded px-3 py-2 w-full" />
+      </label>
       <div *ngIf="mode === 'create'">
         <label class="text-sm font-medium text-gray-700">Password</label>
         <input
@@ -60,4 +69,5 @@
     </div>
   </form>
   </div>
+</div>
 </div>

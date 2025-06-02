@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap, catchError } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import Swal from 'sweetalert2';
+
+
 
 interface UserInfo {
   username: string;
@@ -24,25 +26,31 @@ export class AuthService {
   userInfo$ = this.userInfoSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {}
+login(email: string, password: string) {
+  return this.http.post<{ accessToken: string; refreshToken: string }>(
+    `${this.apiUrl}/login`,
+    { email, password }
+  ).pipe(
+    map((res: { accessToken: string; refreshToken: string }) => {
+      localStorage.setItem(this.tokenKey, res.accessToken);
+      localStorage.setItem(this.refreshKey, res.refreshToken);
+      this.updateUserInfo();
 
-  login(email: string, password: string) {
-    return this.http.post<{ accessToken: string; refreshToken: string }>(
-      `${this.apiUrl}/login`,
-      { email, password }
-    ).pipe(
-      tap((res) => {
-        localStorage.setItem(this.tokenKey, res.accessToken);
-        localStorage.setItem(this.refreshKey, res.refreshToken);
-        this.updateUserInfo();
+      try {
         const payload = JSON.parse(atob(res.accessToken.split('.')[1]));
         console.log('Roles del usuario:', payload.roles);
-      }),
-      catchError(err => {
-        console.error('Login error', err);
-        return throwError(() => err);
-      })
-    );
-  }
+      } catch (err) {
+        console.warn('Error decoding token:', err);
+      }
+
+      return res;
+    }),
+    catchError(err => {
+      console.error('Login error (catchError):', err);
+      return throwError(() => err);
+    })
+  );
+}
 
   getUserRoles(): string[] {
     const token = this.getToken();
@@ -64,6 +72,7 @@ export class AuthService {
   }
 
   getUserInfo(): UserInfo | null {
+     console.log("getUserInfo");
     const token = this.getToken();
     if (!token) return null;
 
@@ -80,6 +89,7 @@ export class AuthService {
   }
 
   updateUserInfo() {
+    console.log("updateUserInfo");
     const user = this.getUserInfo();
     this.userInfoSubject.next(user);
   }
@@ -125,6 +135,7 @@ export class AuthService {
   }
 
   refreshToken(): Observable<{ accessToken: string }> {
+    console.log("refreshToken");
     const refresh = localStorage.getItem(this.refreshKey);
     return this.http.post<{ accessToken: string }>(
       `${this.apiUrl}/refresh-token`,
@@ -161,5 +172,17 @@ getContactId(): number | null {
   } catch {
     return null;
   }
+}
+changePassword(currentPassword: string, newPassword: string) {
+  console.log("changePassword");
+  return this.http.put<{ message: string }>(
+    `${this.apiUrl}/change-password`,
+    { currentPassword, newPassword },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(this.tokenKey)}` // o el nombre que uses
+      }
+    }
+  );
 }
 }

@@ -57,9 +57,20 @@
     <!-- Enlace a registro -->
     <p class="mt-4 text-sm text-center text-gray-600">
       Don’t have an account?
-      <a routerLink="/login/register" class="text-pink-600 font-medium hover:underline">
+      <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSca4MzjI2K0UCam4MVT8-B4sZZTIU9mehKpaEwvwFlTS0qbqQ/viewform"
+        target="_blank"
+        class="text-pink-600 font-medium hover:underline"
+        (click)="showRegistrationMessage()"
+      >
         Register here
       </a>
     </p>
+
+    <!-- Mensaje de confirmación -->
+    <div *ngIf="registrationMessage" class="mt-2 text-sm text-center text-green-600 font-medium">
+      Your registration is being reviewed. You will receive your username and password by email.
+    </div>
+
   </div>
 </div>

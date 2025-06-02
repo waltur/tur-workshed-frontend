@@ -6,7 +6,7 @@ import { GroupService } from '../../services/group.service';
 import { AuthService } from 'src/app/modules/auth/services/auth.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
-//import { addMonths, subMonths } from 'date-fns';
+
 
 @Component({
   selector: 'app-group-calendar',
@@ -68,13 +68,17 @@ loadEventsByGroup(groupId: number): void {
     }
   });
 }
-/*previousMonth(): void {
-  this.viewDate = subMonths(this.viewDate, 1);
+nextMonth() {
+  const next = new Date(this.viewDate);
+  next.setMonth(next.getMonth() + 1);
+  this.viewDate = next;
 }
 
-nextMonth(): void {
-  this.viewDate = addMonths(this.viewDate, 1);
-}*/
+prevMonth() {
+  const prev = new Date(this.viewDate);
+  prev.setMonth(prev.getMonth() - 1);
+  this.viewDate = prev;
+}
 loadAllEvents(): void {
   console.log("loadAllEvents");
  const contactId = this.authService.getContactId() ?? undefined;
@@ -122,9 +126,9 @@ getRegistrationLabel(type: string): string {
   console.log("getRegistrationLabel");
   switch (type) {
     case 'attendee':
-      return 'student';
-    case 'instructor':
-      return 'instructor';
+      return 'attendant';
+    case 'coordinator':
+      return 'coordinator';
     case 'support':
       return 'general support';
     default:
@@ -164,8 +168,8 @@ createEvent(): void {
   const data = {
     title: this.newEvent.title,
     description: this.newEvent.description,
-    start: new Date(this.newEvent.start),
-    end: new Date(this.newEvent.end),
+    start: this.newEvent.start,
+    end: this.newEvent.end,
     id_group: this.newEvent.id_group
   };
 
@@ -244,7 +248,7 @@ registerAsInstructor(event: CalendarEvent): void {
 
   Swal.fire({
     title: 'Confirm Registration',
-    text: 'Do you want to register as an instructor for this event?',
+    text: 'Do you want to register as an coordinator for this event?',
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#28a745',
@@ -255,11 +259,11 @@ registerAsInstructor(event: CalendarEvent): void {
       this.groupService.registerInstructor({ id_event: eventId, id_contact: contactId }).subscribe({
         next: () => {
           this.loadAllEvents();
-          Swal.fire('Registered', 'You are now listed as an instructor', 'success');
+          Swal.fire('Registered', 'You are now listed as an coordinator', 'success');
           this.openTimesheetModal(eventId, contactId);
         },
         error: () => {
-          Swal.fire('Error', 'Failed to register as an instructor', 'error');
+          Swal.fire('Error', 'Failed to register as an coordinator', 'error');
         }
       });
     }

@@ -1,1 +1,30 @@
-<p>admin works!</p>
+<!-- admin-panel.component.html -->
+<div class="container mt-5">
+<div class="max-w-5xl mx-auto p-6">
+  <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">Administration Panel</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Users Management Card -->
+    <div
+      class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+      (click)="navigateTo('users')"
+    >
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Users</h3>
+      <p class="text-gray-600 text-sm">
+        View, create, edit, activate or deactivate users of the platform.
+      </p>
+    </div>
+
+    <!-- Groups Management Card -->
+    <div
+      class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+      (click)="navigateTo('groups')"
+    >
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Groups</h3>
+      <p class="text-gray-600 text-sm">
+        Create new community groups, assign members and schedule events.
+      </p>
+    </div>
+  </div>
+</div>
+</div>

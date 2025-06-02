@@ -6,6 +6,7 @@ import { GroupEventsComponent } from './pages/group-events/group-events.componen
 import { GroupTimesheetsComponent } from './pages/group-timesheets/group-timesheets.component';
 import { GroupMembersComponent } from './pages/group-members/group-members.component';
 import { GroupCalendarComponent } from './pages/group-calendar/group-calendar.component';
+import { GroupsComponent } from './groups.component';
 
 const routes: Routes = [
 { path: '', component: GroupListComponent },
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: ':id/events', component: GroupEventsComponent },
   { path: 'event/:id/timesheets', component: GroupTimesheetsComponent },
   { path: 'calendar', component: GroupCalendarComponent },
+   { path: 'listGroup', component: GroupsComponent },
 ];
 
 @NgModule({

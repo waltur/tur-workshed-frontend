@@ -23,6 +23,8 @@ userForm!: FormGroup;
   user: any = {
     username: '',
     email: '',
+    name: '',
+    phone_number:'',
     roles: [],
     job_roles: []
   };
@@ -64,9 +66,11 @@ loadingUser: boolean = false;
 
   initForm(): void {
     this.userForm = this.fb.group({
+      name: ['', Validators.required],
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['',[Validators.required]] // solo requerido en "create"
+      password: ['',[Validators.required]], // solo requerido en "create"
+      phone_number: [''],
     });
   }
 
@@ -95,7 +99,10 @@ loadUser(id: number): void {
       // ✅ Cargamos el formulario reactivo
       this.userForm.patchValue({
         username: user.username,
-        email: user.email
+        email: user.email,
+        name: user.name,
+        phone_number:user.phone_number
+
       });
 
       // ✅ Llenamos la variable this.user (completa)

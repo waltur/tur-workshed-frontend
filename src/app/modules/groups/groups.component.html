@@ -1,1 +1,42 @@
-<p>groups works!</p>
+
+<div class="groups-container mt-5">
+  <h1 class="title">My Groups</h1>
+
+  <div class="group-grid">
+    <div class="group-card" *ngFor="let group of groups" (click)="selectGroup(group)">
+      <div class="circle-avatar">
+        <span class="group-initial">{{ group.name.charAt(0).toUpperCase() }}</span>
+      </div>
+      <div class="group-name">{{ group.name }}</div>
+    </div>
+  </div>
+
+  <!-- Detalles del grupo seleccionado -->
+  <div *ngIf="selectedGroup" class="group-details">
+    <h2>Group Details</h2>
+    <p><strong>Name:</strong> {{ selectedGroup.name }}</p>
+    <p><strong>Description:</strong> {{ selectedGroup.description || 'No description available' }}</p>
+
+    <!-- Botón para mostrar/ocultar miembros -->
+    <div *ngIf="isAdmin()">
+    <button mat-raised-button color="primary" (click)="toggleMembers()">
+      {{ showMembers ? 'Hide Members' : 'View Members' }}
+    </button>
+    </div>
+    <div *ngIf="showMembers" @fadeSlide class="card mt-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Group Members</h5>
+        <button class="btn btn-outline-primary btn-sm" (click)="goToAddMembers()">
+          <i class="bi bi-person-plus"></i> Add Members
+        </button>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item" *ngFor="let member of groupMembers">
+          {{ member.name }} - {{ member.email }}
+        </li>
+      </ul>
+    </div>
+</div>
+
+
+</div>

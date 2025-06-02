@@ -93,6 +93,7 @@
             [value]="job.id"
             (change)="toggleJobRole(job.id_job_role)"
             [checked]="selectedJobRoleIds.includes(job.id_job_role)"
+            [disabled]="!isAdmin && job.title === 'Class/Group leaders'"
           />
           <span class="ml-2">{{ job.title }}</span>
         </label>

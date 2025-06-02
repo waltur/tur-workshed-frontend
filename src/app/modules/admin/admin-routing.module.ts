@@ -14,7 +14,8 @@ const routes: Routes = [
       { path: 'users', component: UserListComponent },
       { path: 'users/new', component: UserFormComponent },
       { path: 'users/edit/:id', component: UserFormComponent },
-      { path: '', redirectTo: 'users', pathMatch: 'full' }
+     // { path: '', redirectTo: 'users', pathMatch: 'full' },
+      { path: '', component: AdminComponent },
     ]
   }
 ];

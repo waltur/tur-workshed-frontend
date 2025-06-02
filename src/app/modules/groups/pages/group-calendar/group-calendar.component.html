@@ -43,11 +43,13 @@
       <button (click)="next()" class="bg-gray-200 text-sm px-2 py-1 rounded">»</button>
     </div>
   </div>
-  <!--<div class="calendar-header">
-    <button (click)="previousMonth()">&lt;</button>
-    <span class="calendar-title">{{ viewDate | date: 'MMMM yyyy' }}</span>
-    <button (click)="nextMonth()">&gt;</button>
-  </div>-->
+  <div *ngIf="view === CalendarView.Month" class="flex justify-between items-center mb-4 px-4">
+    <button (click)="prevMonth()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">←</button>
+    <div class="text-lg font-semibold">
+      {{ viewDate | date: 'MMMM yyyy' }}
+    </div>
+    <button (click)="nextMonth()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">→</button>
+  </div>
   <div class="calendar-container">
     <mwl-calendar-month-view
       *ngIf="view === CalendarView.Month"
@@ -70,7 +72,7 @@
           </div>
           <div class="event-roles" *ngIf="event.meta?.registration_roles?.length">
             🏷️
-            <span *ngFor="let role of event.meta.registration_roles" class="role-badge">{{ role }}</span>
+            <span class="role-badge">{{ event.meta.registration_roles.join(', ') }}</span>
           </div>
         </div>
       </ng-template>
@@ -118,24 +120,49 @@
 </span>
           </div>
           <div class="flex gap-2">
+            <!-- Attendee Button -->
             <button
+              *ngIf="isMember()"
               (click)="registerAsAttendee(e)"
-              class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+              [disabled]="e.meta?.registration_roles?.includes('Attendant')"
+              [ngClass]="{
+      'bg-green-500 hover:bg-green-600 cursor-pointer': !e.meta?.registration_roles?.includes('Attendant'),
+      'bg-gray-300 text-gray-500 cursor-not-allowed': e.meta?.registration_roles?.includes('Attendant')
+    }"
+              [title]="e.meta?.registration_roles?.includes('Attendant') ? 'You are already attending' : 'Register as attendee'"
+              class="text-white px-3 py-1 rounded text-sm transition duration-200"
             >
-              I'm attending
+              {{ e.meta?.registration_roles?.includes('Attendant') ? 'Already Attending' : 'I\'m attending' }}
             </button>
+
+            <!-- Instructor Button -->
             <button
               *ngIf="canTeach()"
               (click)="registerAsInstructor(e)"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+              [disabled]="e.meta?.registration_roles?.includes('Coordinator')"
+              [ngClass]="{
+      'bg-blue-600 hover:bg-blue-700 cursor-pointer': !e.meta?.registration_roles?.includes('Coordinator'),
+      'bg-gray-300 text-gray-500 cursor-not-allowed': e.meta?.registration_roles?.includes('Coordinator')
+    }"
+              [title]="e.meta?.registration_roles?.includes('Coordinator') ? 'You are already teaching this event' : 'Register as coordinator'"
+              class="text-white px-3 py-1 rounded text-sm transition duration-200"
             >
-              Teach
+              {{ e.meta?.registration_roles?.includes('Coordinator') ? 'Already Coordinating' : 'Coordinator' }}
             </button>
+
+            <!-- General Support Button -->
             <button
               *ngIf="isGeneralSupportVolunteer()"
               (click)="registerAsHelper(e)"
-              class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">
-              Help as Support
+              [disabled]="e.meta?.registration_roles?.includes('General Support')"
+              [ngClass]="{
+      'bg-yellow-500 hover:bg-yellow-600 cursor-pointer': !e.meta?.registration_roles?.includes('General Support'),
+      'bg-gray-300 text-gray-500 cursor-not-allowed': e.meta?.registration_roles?.includes('General Support')
+    }"
+              [title]="e.meta?.registration_roles?.includes('General Support') ? 'You are already supporting this event' : 'Register as general support'"
+              class="text-white px-3 py-1 rounded text-sm transition duration-200"
+            >
+              {{ e.meta?.registration_roles?.includes('General Support') ? 'Already Helping' : 'Help as Support' }}
             </button>
           </div>
         </div>
@@ -152,25 +179,25 @@
   <div class="modal-body">
     <p><strong>Description:</strong> {{ selectedEvent?.meta?.description }}</p>
     <p><strong>Group:</strong> {{ selectedEvent?.meta?.group }}</p>
-    <p><strong>Start Date:</strong> {{ selectedEvent?.start | date:'fullDate' }}</p>
-    <p><strong>End Date:</strong> {{ selectedEvent?.end | date:'fullDate' }}</p>
+    <p><strong>Start:</strong> {{ selectedEvent?.start | date: 'fullDate' }} {{ selectedEvent?.start | date:'shortTime' }}</p>
+    <p><strong>End:</strong> {{ selectedEvent?.end | date: 'fullDate' }} {{ selectedEvent?.end | date:'shortTime' }}</p>
   </div>
 
   <div class="modal-footer">
-    <!-- Para todos los miembros -->
-    <button *ngIf="isMember()" class="btn btn-primary" (click)="registerAsAttendee(selectedEvent)">
-      Register as Student
-    </button>
 
-    <!-- Para voluntarios con rol General Support -->
-    <button *ngIf="isGeneralSupportVolunteer()" class="btn btn-warning" (click)="registerAsHelper(selectedEvent)">
-      Register as General Support
-    </button>
+    <!--  <button *ngIf="isMember()" class="btn btn-primary" (click)="registerAsAttendee(selectedEvent)">
+        Register as Student
+      </button>
 
-    <!-- Ya existente para instructores -->
-    <button *ngIf="canTeach()" class="btn btn-success" (click)="registerAsInstructor(selectedEvent)">
-      Register as Instructor
-    </button>
+
+      <button *ngIf="isGeneralSupportVolunteer()" class="btn btn-warning" (click)="registerAsHelper(selectedEvent)">
+        Register as General Support
+      </button>
+
+
+      <button *ngIf="canTeach()" class="btn btn-success" (click)="registerAsInstructor(selectedEvent)">
+        Register as Instructor
+      </button>-->
 
     <button class="btn btn-secondary" (click)="modal.dismiss()">Close</button>
   </div>
