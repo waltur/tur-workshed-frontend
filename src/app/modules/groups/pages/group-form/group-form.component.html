@@ -6,6 +6,14 @@
 
   <form (ngSubmit)="submit()">
     <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Group Image</label>
+      <input type="file" (change)="onImageSelected($event)" accept="image/*" />
+    </div>
+
+    <div *ngIf="group.image" class="mt-2">
+      <img [src]="group.image" alt="Preview" class="w-32 h-32 rounded object-cover shadow" />
+    </div>
+    <div class="mb-4">
       <label class="block mb-1 text-sm font-medium">Name</label>
       <input [(ngModel)]="group.name" name="name" class="w-full border p-2 rounded" required />
     </div>

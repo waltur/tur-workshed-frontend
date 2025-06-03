@@ -1,42 +1,49 @@
-
 <div class="groups-container mt-5">
-  <h1 class="title">My Groups</h1>
+  <h1 class="title text-center text-2xl font-bold text-pink-600 mb-6">My Groups</h1>
 
-  <div class="group-grid">
-    <div class="group-card" *ngFor="let group of groups" (click)="selectGroup(group)">
-      <div class="circle-avatar">
-        <span class="group-initial">{{ group.name.charAt(0).toUpperCase() }}</span>
-      </div>
-      <div class="group-name">{{ group.name }}</div>
+  <div class="group-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <!-- class="group-card bg-white rounded-lg shadow p-4 text-center cursor-pointer transition transform hover:scale-105"!-->
+    <div
+
+      *ngFor="let group of groups"
+      (click)="selectGroup(group)"
+    >
+      <div
+        class="circle-avatar mx-auto mb-3 shadow-md overflow-hidden"
+        [ngStyle]="{
+          'background-image': group.image ? 'url(' + group.image + ')' : 'url(/assets/default-group.jpg)',
+          'background-size': 'cover',
+          'background-position': 'center'
+        }"
+      ></div>
+      <div class="group-name text-gray-800 font-semibold text-lg mt-2">{{ group.name }}</div>
     </div>
   </div>
 
   <!-- Detalles del grupo seleccionado -->
-  <div *ngIf="selectedGroup" class="group-details">
-    <h2>Group Details</h2>
+  <div *ngIf="selectedGroup" class="group-details mt-10 bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-xl font-semibold mb-3 text-gray-800">Group Details</h2>
     <p><strong>Name:</strong> {{ selectedGroup.name }}</p>
     <p><strong>Description:</strong> {{ selectedGroup.description || 'No description available' }}</p>
 
-    <!-- Botón para mostrar/ocultar miembros -->
-    <div *ngIf="isAdmin()">
-    <button mat-raised-button color="primary" (click)="toggleMembers()">
-      {{ showMembers ? 'Hide Members' : 'View Members' }}
-    </button>
+    <div *ngIf="isAdmin()" class="mt-4">
+      <button mat-raised-button color="primary" (click)="toggleMembers()">
+        {{ showMembers ? 'Hide Members' : 'View Members' }}
+      </button>
     </div>
+
     <div *ngIf="showMembers" @fadeSlide class="card mt-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Group Members</h5>
+      <div class="card-header flex justify-between items-center">
+        <h5 class="mb-0 text-lg font-bold">Group Members</h5>
         <button class="btn btn-outline-primary btn-sm" (click)="goToAddMembers()">
           <i class="bi bi-person-plus"></i> Add Members
         </button>
       </div>
-      <ul class="list-group list-group-flush">
+      <ul class="list-group list-group-flush mt-2">
         <li class="list-group-item" *ngFor="let member of groupMembers">
           {{ member.name }} - {{ member.email }}
         </li>
       </ul>
     </div>
-</div>
-
-
+  </div>
 </div>
