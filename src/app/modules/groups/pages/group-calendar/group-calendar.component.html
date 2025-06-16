@@ -67,6 +67,9 @@
           <div class="event-title">
             📌 {{ event.title }}
           </div>
+          <div *ngIf="isLogged" class="event-group">
+            📍 {{ event.meta?.location }}
+          </div>
           <div class="event-group">
             👥 {{ event.meta?.group }}
           </div>
@@ -74,10 +77,16 @@
             🏷️
             <span class="role-badge">{{ event.meta.registration_roles.join(', ') }}</span>
           </div>
+          <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-start">
+  <span class="text-danger" style="cursor: pointer;" title="Delete Event" (click)="deleteEvent(event.meta.id_event)">
+    🗑️ Delete Event
+  </span>
+          </div>
         </div>
       </ng-template>
     </mwl-calendar-month-view>
     <!-- Botón para abrir modal cuando el día está activo -->
+
     <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-end">
       <button class="btn btn-outline-primary" (click)="openNewEventModal()">
         + Add Event on {{ selectedDate | date:'fullDate' }}
@@ -114,6 +123,7 @@
         >
           <div>
             <div class="font-medium text-gray-800">{{ e.title }}</div>
+            <div *ngIf="isLogged" class="font-medium text-gray-800">{{ e.meta?.location }}</div>
             <div class="text-sm text-gray-500">{{ e.meta?.description }}</div>
             <span *ngIf="e.meta?.registration_roles?.length" class="ml-2 text-green-600 text-xs font-semibold">
   • Registered as: {{ e.meta.registration_roles.join(', ') }}
@@ -204,6 +214,10 @@
 </ng-template>
 <ng-template #newEventModal  let-modal>
   <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
+    <div *ngIf="loading" class="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center">
+      <div class="w-10 h-10 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+      <p class="text-sm text-gray-600 mt-3">Creating Event...</p>
+    </div>
     <h2 class="text-xl font-bold text-pink-600 mb-4">Create New Event</h2>
 
     <div class="space-y-4">
@@ -221,12 +235,38 @@
         <label class="block text-sm font-medium text-gray-700">Title</label>
         <input type="text" [(ngModel)]="newEvent.title" class="w-full border rounded px-3 py-2 mt-1" />
       </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Location</label>
+        <input [(ngModel)]="newEvent.location" class="w-full border rounded px-3 py-2 mt-1"/>
+      </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700">Description</label>
         <textarea [(ngModel)]="newEvent.description" class="w-full border rounded px-3 py-2 mt-1"></textarea>
       </div>
 
+      <div class="mt-6 bg-gray-50 border rounded p-4">
+        <h3 class="text-lg font-semibold text-pink-600 mb-3">Event Tasks</h3>
+
+        <div *ngFor="let task of eventTasks; let i = index" class="mb-4 border rounded p-3 shadow-sm bg-white">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" [(ngModel)]="task.task_name" placeholder="Task name" class="form-input w-full border p-2 rounded" name="task_name{{i}}" />
+
+            <input type="text" [(ngModel)]="task.time_range" placeholder="Time range (e.g. 8:00 - 12:00)" class="form-input w-full border p-2 rounded" name="time_range{{i}}" />
+
+            <input type="number" min="0" [(ngModel)]="task.volunteer_needed" placeholder="Volunteers needed" class="form-input w-full border p-2 rounded" name="volunteer_needed{{i}}" />
+          </div>
+          <div class="text-right mt-2">
+            <button type="button" (click)="removeTask(i)" class="text-red-600 text-sm">Remove</button>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <button type="button" (click)="addTask()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded text-sm">
+            + Add Task
+          </button>
+        </div>
+      </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Start</label>

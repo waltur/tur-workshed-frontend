@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,7 @@ loginForm!: FormGroup;
  loginError: string = '';
  showPassword: boolean = false;
  registrationMessage = false;
+ loading=false;
 
   constructor(
     private fb: FormBuilder,
@@ -37,11 +39,12 @@ showRegistrationMessage() {
   }, 8000);
 }
 submit(): void {
+  this.loading=true;
   console.log("login");
   this.loginError = '';
   if (this.loginForm.invalid) {
     this.loginForm.markAllAsTouched();
-
+    this.loading=false;
     Swal.fire({
       icon: 'error',
       title: 'Login Failed',
@@ -54,36 +57,36 @@ submit(): void {
 
   const { email, password } = this.loginForm.value;
 
-  this.authService.login(email, password).subscribe({
-    next: () => {
-      const roles = this.authService.getUserRoles();
+  this.authService.login(email, password)
+    .pipe(finalize(() => this.loading = false))
+    .subscribe({
+      next: () => {
+        const roles = this.authService.getUserRoles();
+        if (roles.includes('Admin')) {
+          this.router.navigate(['/admin']);
+        } else if (roles.includes('Staff')) {
+          this.router.navigate(['/dashboard']);
+        } else if (roles.includes('Volunteer')) {
+          this.router.navigate(['/volunteers']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (error) => {
+        let message = 'Invalid email or password.';
+        if (error.status === 401 && error.error?.message) {
+          message = error.error.message;
+        } else if (error.status === 0) {
+          message = 'Unable to connect to the server.';
+        }
 
-      if (roles.includes('Admin')) {
-        this.router.navigate(['/admin']);
-      } else if (roles.includes('Staff')) {
-        this.router.navigate(['/dashboard']);
-      } else if (roles.includes('Volunteer')) {
-        this.router.navigate(['/volunteers']);
-      } else {
-        this.router.navigate(['/']);
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: message
+        });
       }
-    },
-    error: (error) => {
-      let message = 'Invalid email or password.';
-
-      if (error.status === 401 && error.error?.message) {
-        message = error.error.message;
-      } else if (error.status === 0) {
-        message = 'Unable to connect to the server.';
-      }
-
-      Swal.fire({
-        icon: 'error',
-        title: 'Login Failed',
-        text: message
-      });
-    }
-  });
+    });
 }
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;

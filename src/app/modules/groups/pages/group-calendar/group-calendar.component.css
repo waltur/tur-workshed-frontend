@@ -10,7 +10,17 @@
 ::ng-deep .event-title {
   font-weight: 600;
   color: #065f46;
+  white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 2000px; /* ajusta este valor según tu diseño */
+    display: inline-block;
+    vertical-align: middle;
 }
+
+
+
+
 
 ::ng-deep .event-group {
   color: #047857;

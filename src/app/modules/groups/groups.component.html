@@ -25,25 +25,33 @@
     <h2 class="text-xl font-semibold mb-3 text-gray-800">Group Details</h2>
     <p><strong>Name:</strong> {{ selectedGroup.name }}</p>
     <p><strong>Description:</strong> {{ selectedGroup.description || 'No description available' }}</p>
-
-    <div *ngIf="isAdmin()" class="mt-4">
+    <div *ngIf="groupCoordinator" class="mt-4 p-4 bg-blue-50 rounded border border-blue-300">
+      <h3 class="font-semibold text-blue-800">Coordinator</h3>
+      <p><strong>Name:</strong> {{ groupCoordinator.name || 'Unknown' }}</p>
+      <p><strong>Cell phone:</strong> {{ groupCoordinator.phone_number || 'Unknown' }}</p>
+      <p><strong>Email:</strong> {{ groupCoordinator.email || 'No email' }}</p>
+    </div>
+    <div  class="mt-4">
       <button mat-raised-button color="primary" (click)="toggleMembers()">
         {{ showMembers ? 'Hide Members' : 'View Members' }}
       </button>
     </div>
 
-    <div *ngIf="showMembers" @fadeSlide class="card mt-4">
+   <!-- <div *ngIf="showMembers" @fadeSlide class="card mt-4">-->
       <div class="card-header flex justify-between items-center">
         <h5 class="mb-0 text-lg font-bold">Group Members</h5>
-        <button class="btn btn-outline-primary btn-sm" (click)="goToAddMembers()">
+        <button
+          class="btn btn-outline-primary btn-sm"
+          (click)="goToAddMembers()">
           <i class="bi bi-person-plus"></i> Add Members
         </button>
-      </div>
-      <ul class="list-group list-group-flush mt-2">
-        <li class="list-group-item" *ngFor="let member of groupMembers">
-          {{ member.name }} - {{ member.email }}
+
+       </div>
+      <ul *ngIf="showMembers" class="list-group list-group-flush mt-2">
+        <li class="list-group-item" *ngFor="let member of filteredGroupMembers">
+          {{ member.name }} - {{ member.email }} - {{member.name_role}}
         </li>
       </ul>
     </div>
-  </div>
+ <!-- </div>-->
 </div>

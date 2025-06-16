@@ -26,7 +26,7 @@ export class AuthService {
   userInfo$ = this.userInfoSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {}
-login(email: string, password: string) {
+login(email: string, password: string): Observable<any> {
   return this.http.post<{ accessToken: string; refreshToken: string }>(
     `${this.apiUrl}/login`,
     { email, password }

@@ -61,6 +61,7 @@ submit(): void {
     this.registerForm.markAllAsTouched();
     return;
   }
+
   if (this.emailInUse) {
     this.registerError = 'This email is already registered.';
     return;
@@ -73,11 +74,14 @@ submit(): void {
     this.registerError = 'This username is already taken.';
     return;
   }
+ const formValue = this.registerForm.value;
+ formValue.email = formValue.email.toLowerCase();
  const formData = {
     ...this.registerForm.value,
     roles: this.selectedRoleIds,
     job_roles: this.selectedJobRoleIds
   };
+
   this.authService.register(formData).subscribe({
     next: () => {
       alert('Registration successful! You can now log in.');
@@ -92,7 +96,7 @@ checkEmail(): void {
   const email = this.registerForm.get('email')?.value;
   if (!email) return;
 
-  this.authService.checkEmail(email).subscribe(res => {
+  this.authService.checkEmail(email.toLowerCase()).subscribe(res => {
     this.emailInUse = res.exists;
   });
 }

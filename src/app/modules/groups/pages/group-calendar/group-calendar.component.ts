@@ -6,13 +6,19 @@ import { GroupService } from '../../services/group.service';
 import { AuthService } from 'src/app/modules/auth/services/auth.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
-
+interface EventTask {
+                   task_name: string;
+                   time_range: string;
+                   volunteer_needed: number;
+                 }
 @Component({
   selector: 'app-group-calendar',
   templateUrl: './group-calendar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class GroupCalendarComponent {
   CalendarView = CalendarView; // exponer enum para template
   @ViewChild('eventDetails') eventDetailsModal!: TemplateRef<any>;
@@ -25,21 +31,26 @@ export class GroupCalendarComponent {
   refresh: Subject<void> = new Subject();
   selectedDate: Date = new Date();
   newEvent = {
+    id_event: null,
     title: '',
     description: '',
     start: '',
     end: '',
-    id_group: null
+    id_group: null,
+    location:''
   };
 groups: any[] = [];
-
+eventTasks: EventTask[] = [];
+loading = false;
 events: CalendarEvent[] = [];
+isLogged = false;
 constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
 
 
   ngOnInit(): void {
     this.loadGroups();
     this.loadAllEvents();
+    this.isLogged = this.authService.isLoggedIn();
   }
 
 loadEventsByGroup(groupId: number): void {
@@ -48,12 +59,14 @@ loadEventsByGroup(groupId: number): void {
     next: (data) => {
       this.events = data.map(event => ({
         title: event.title,
+
         start: new Date(event.start),
         end: new Date(event.end),
         meta: {
           id_event: event.id_event,
           description: event.description,
-          group: event.group_name || ''
+          group: event.group_name || '',
+          location: event.location,
         },
         color: {
           primary: '#EC4899',
@@ -87,13 +100,15 @@ loadAllEvents(): void {
     next: (data) => {
       this.events = data.map(event => ({
         title: event.title,
+
         start: new Date(event.start),
         end: new Date(event.end),
         meta: {
           id_event: event.id_event,
           description: event.description,
           group: event.group_name || '',
-          registration_roles: event.registration_roles || []
+          registration_roles: event.registration_roles || [],
+          location: event.location,
         },
         color: {
           primary: '#10B981',
@@ -141,6 +156,8 @@ dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
   this.newEvent.end = this.newEvent.start;
   this.newEvent.title = "";
   this.newEvent.description = "";
+  this.newEvent.location = "";
+
 
   // SI haces clic en el mismo día activo Y no hay eventos, cerrar
   if (
@@ -157,37 +174,77 @@ dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
 openNewEventModal(): void {
   this.modalService.open(this.newEventModal, { size: 'lg' });
 }
+addTask() {
+  this.eventTasks.push({ task_name: '', time_range: '', volunteer_needed: 1 });
+}
+
+removeTask(index: number) {
+  this.eventTasks.splice(index, 1);
+}
 createEvent(): void {
+  this.loading = true;
+
   if (!this.newEvent.title || !this.newEvent.id_group || !this.newEvent.start) {
+    this.loading = false;
     Swal.fire('Missing data', 'Please select a group and enter a title/date', 'warning');
-    return; // importante agregar este return para terminar la función
+    return;
   }
-
-
 
   const data = {
     title: this.newEvent.title,
     description: this.newEvent.description,
     start: this.newEvent.start,
     end: this.newEvent.end,
-    id_group: this.newEvent.id_group
+    id_group: this.newEvent.id_group,
+    location:this.newEvent.location,
   };
 
   this.groupService.createEvent(data).subscribe({
-    next: () => {
-      this.loadAllEvents();
-      this.modalService.dismissAll();
-      Swal.fire('Success', 'Event created successfully', 'success');
+    next: (createdEvent) => {
+      const id_event = createdEvent.id_event;
+
+      // ✅ Si no hay tareas, finalizar directamente
+      if (!this.eventTasks || this.eventTasks.length === 0) {
+        this.loading = false;
+        Swal.fire('Success', 'Event created successfully (no tasks)', 'success');
+        this.loadAllEvents();
+        this.modalService.dismissAll();
+        return;
+      }
+
+      // ✅ Si hay tareas, hacer forkJoin
+      const taskCalls = this.eventTasks.map((task: any) =>
+        this.groupService.createEventTask({
+          id_event,
+          task_name: task.task_name,
+          time_range: task.time_range,
+          volunteer_needed: task.volunteer_needed
+        })
+      );
+
+      forkJoin(taskCalls).subscribe({
+        next: () => {
+          this.loading = false;
+          Swal.fire('Success', 'Event and tasks created successfully', 'success');
+          this.loadAllEvents();
+          this.modalService.dismissAll();
+        },
+        error: () => {
+          this.loading = false;
+          Swal.fire('Error', 'Failed to create tasks', 'error');
+        }
+      });
     },
     error: () => {
+      this.loading = false;
       Swal.fire('Error', 'Failed to create event', 'error');
     }
   });
 }
 canCreateEvent(): boolean {
   return this.authService.isAdmin() ||
-         this.authService.hasJobRole('Class/Group leaders') ||
-         this.authService.hasJobRole('General support');
+         this.authService.hasJobRole('Class/Group leaders');
+         //||this.authService.hasJobRole('General support');
          }
   handleEvent(event: CalendarEvent): void {
     console.log("handleEvent");
@@ -196,6 +253,7 @@ canCreateEvent(): boolean {
   }
 
   getEventsForSelectedDay(): CalendarEvent[] {
+    console.log("getEventsForSelectedDay");
     return this.events.filter(
       (event) =>
         event.start.toDateString() === this.viewDate.toDateString()
@@ -394,4 +452,70 @@ private adjustDate(amount: number): Date {
   }
   return date;
 }
+confirmDeleteEvent(event: any): void {
+  if (confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
+    this.deleteEvent(event.id); // Llama al servicio que elimina el evento
+  }
+}
+
+deleteEvent(eventId: number): void {
+  console.log("delete event");
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'This will permanently delete the event.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.groupService.deleteEvent(eventId).subscribe({
+        next: () => {
+          this.loadAllEvents();
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The event has been deleted.'
+          });
+        },
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'There was a problem deleting the event.'
+          });
+        }
+      });
+    }
+  });
+}
+editEvent(): void {
+  const id_event = this.newEvent.id_event;
+
+  if (!id_event) {
+    Swal.fire('Error', 'Missing event ID for update', 'error');
+    return;
+  }
+
+  const updatedData = {
+    title: this.newEvent.title,
+    description: this.newEvent.description,
+    start: this.newEvent.start,
+    end: this.newEvent.end,
+    id_group: this.newEvent.id_group
+  };
+
+  this.groupService.updateEvent(id_event, updatedData).subscribe({
+    next: () => {
+      Swal.fire('Success', 'Event updated successfully', 'success');
+      this.loadAllEvents();
+      this.modalService.dismissAll();
+    },
+    error: () => {
+      Swal.fire('Error', 'Failed to update event', 'error');
+    }
+  });
+}
+
 }

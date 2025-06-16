@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { forkJoin } from 'rxjs';
+import { Observable } from 'rxjs';
 
 interface HelperRegistration {
   id_event: number;
@@ -14,7 +16,9 @@ export class GroupService {
   private apiUrl = `${environment.apiUrl}/groups`;
   private eventUrl = `${environment.apiUrl}/group-events`;
   private participationUrl = `${environment.apiUrl}/group-participation`;
-   private timesheetsUrl = `${environment.apiUrl}/group-timesheets`;
+  private timesheetsUrl = `${environment.apiUrl}/group-timesheets`;
+  private tasksUrl  = `${environment.apiUrl}/group-tasks`;
+
 
 
 
@@ -59,10 +63,9 @@ getEventsByGroup(groupId: number) {
   return this.http.get<any[]>(`${this.eventUrl}/group/${groupId}`);
 }
 
-createEvent(data: any) {
-    return this.http.post(`${this.eventUrl}`, data);
+createEvent(data: any): Observable<{ id_event: number }> {
+  return this.http.post<{ id_event: number }>(`${this.eventUrl}`, data);
 }
-
 // Timesheets
 getTimesheetsByEvent(eventId: number) {
   return this.http.get<any[]>(`${this.apiUrl}/group-timesheets/event/${eventId}`);
@@ -87,5 +90,25 @@ getAllEvents(contactId?: number) {
 registerHelper(data: HelperRegistration) {
   return this.http.post(`${this.participationUrl}/helper`, data);
 }
+createEventTask(task: {
+  id_event: number;
+  task_name: string;
+  time_range: string;
+  volunteer_needed: number;
+}) {
+  return this.http.post(`${this.tasksUrl}`, task);
+}
 
+getTasksByEvent(id_event: number) {
+  return this.http.get<any[]>(`${this.tasksUrl}/events/${id_event}`);
+}
+deleteEvent(id: number): Observable<any> {
+  return this.http.delete(`${this.eventUrl}/events/${id}`);
+}
+updateEvent(id: number, eventData: any): Observable<any> {
+  return this.http.put(`${this.eventUrl}/events/${id}`, eventData);
+}
+  getGroupRoles(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.participationUrl}/group-roles`);
+  }
 }
