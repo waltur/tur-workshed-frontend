@@ -10,9 +10,7 @@
 }
 
 .group-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
+  display: grid;
   justify-content: center;
 }
 
@@ -29,20 +27,13 @@
 }
 
 .circle-avatar {
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   background: linear-gradient(135deg, #7986cb, #5c6bc0);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.group-initial {
-  font-size: 3rem;
-  color: white;
-  font-weight: bold;
+  background-size: cover;
+  background-position: center;
 }
 
 .group-name {
@@ -51,35 +42,25 @@
   font-weight: 500;
   color: #333;
 }
+
 .group-details {
-  margin-top: 3rem;
-  padding: 2rem;
+  margin-top: 1rem;
+  padding: 1rem;
   border-top: 2px solid #ccc;
   text-align: left;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
   background-color: #f9f9f9;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
 }
 
-.group-details h2 {
-  color: #3f51b5;
-  margin-bottom: 1rem;
-}
-.members-list {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #eef3ff;
-  border-radius: 8px;
-}
-
-.members-list h3 {
-  color: #3f51b5;
-}
-.members-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.list-group-item {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #ddd;
 }

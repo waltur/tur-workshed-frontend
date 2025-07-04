@@ -17,6 +17,7 @@ export class GroupMembersComponent implements OnInit {
   groupRoles: any[] = [];
   isCurrentUserMember: boolean = false;
   canAddMembers: boolean = false;
+  groupCoordinator: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,11 +37,20 @@ loadMembers() {
   this.groupService.getGroupMembers(this.groupId).subscribe(res => {
     //const idContact = Number(localStorage.getItem('id_contact'));
    const idContact= this.authService.getContactId() ?? undefined;
+
+     const coordinator = res.find(m => m.name_role === 'Coordinator');
+         if (coordinator) {
+          this.groupCoordinator = res.some(
+            (member: any) => member.id_contact === idContact && member.name_role === 'Coordinator'
+          );
+       }
+
    if (this.userCanAssignRestrictedRoles()) {
       this.members = res;
     } else {
       this.members = res.filter((member: any) => member.id_contact === idContact);
     }
+
     //this.isCurrentUserMember = res.some((member: any) => member.id_contact === idContact);
     const isMember = res.some((member: any) => member.id_contact === idContact);
     this.isCurrentUserMember = isMember;
@@ -53,10 +63,14 @@ isRestricted(roleName: string): boolean {
 }
 
 userCanAssignRestrictedRoles(): boolean {
-  return this.authService.isAdmin() || this.authService.hasJobRole('Class/Group leaders');
+
+  //return this.authService.isAdmin() || this.newMember.role_in_group === '1' ;
+  return this.authService.isAdmin() || this.groupCoordinator ;
+
 }
 
   loadContacts() {
+    console.log("loadContacts");
     this.contactService.getContacts().subscribe(res => {
 
          const idContact= this.authService.getContactId() ?? undefined;
@@ -75,9 +89,9 @@ isAdmin(): boolean{
 
 addMember() {
   console.log("addMember");
+
   if (!this.newMember.id_contact || !this.newMember.role_in_group) return;
 
-  // Validar si ya existe un Coordinator
   const alreadyCoordinator = this.members.some(
     member => member.name_role === 'Coordinator'
   );
@@ -104,10 +118,27 @@ addMember() {
     return;
   }
 
-  this.groupService.addGroupMember(this.groupId, this.newMember).subscribe(() => {
-    this.newMember = { id_contact: 0, role_in_group: '' };
-    this.loadMembers();
-  });
+  // Si es rol Coordinador, validar si tiene el job_role requerido
+  if (this.newMember.role_in_group === '1') {
+    this.contactService.getContactJobRoles(this.newMember.id_contact).subscribe(roles => {
+      if (!roles.some(r => r.title === 'Class/Group leaders')) {
+        Swal.fire('Not allowed', 'This contact is not a Class/Group Leader.', 'warning');
+        return;
+      }
+
+      // ✅ Si pasa todas las validaciones, agregar el miembro
+      this.groupService.addGroupMember(this.groupId, this.newMember).subscribe(() => {
+        this.newMember = { id_contact: 0, role_in_group: '' };
+        this.loadMembers();
+      });
+    });
+  } else {
+    // Si no es Coordinador, agregar directamente
+    this.groupService.addGroupMember(this.groupId, this.newMember).subscribe(() => {
+      this.newMember = { id_contact: 0, role_in_group: '' };
+      this.loadMembers();
+    });
+  }
 }
 
   removeMember(id: number) {

@@ -2,13 +2,15 @@
   <div class="flex justify-between items-center mb-4">
     <div class="mb-4 flex items-center gap-4">
       <label class="text-sm font-medium text-gray-700">Filter by group:</label>
-      <select
-        [(ngModel)]="selectedGroupId"
-        (change)="onGroupChange()"
-        class="border px-3 py-1 rounded text-sm"
-      >
-        <option [ngValue]="null">All</option>
-        <option *ngFor="let group of groups" [ngValue]="group.id_group">
+      <select [(ngModel)]="selectedGroupId"
+              (change)="onGroupChange()"
+              class="w-full border rounded px-3 py-2 mt-1">
+        <option [value]="null" disabled>Select a group</option>
+
+        <option
+          *ngFor="let group of groups"
+          [value]="group.id_group"
+          [disabled]="!isAdmin && !coordinatorGroupIds.includes(group.id_group)">
           {{ group.name }}
         </option>
       </select>
@@ -78,16 +80,19 @@
             <span class="role-badge">{{ event.meta.registration_roles.join(', ') }}</span>
           </div>
           <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-start">
-  <span class="text-danger" style="cursor: pointer;" title="Delete Event" (click)="deleteEvent(event.meta.id_event)">
-    🗑️ Delete Event
+  <span class="text-danger" style="cursor: pointer;" title="Delete Event " (click)="deleteEvent(event.meta.id_event)">
+    🗑️ Delete
   </span>
+            <span class="text-danger" style="cursor: pointer;" title="Edit Event" (click)="openNewEventModal(event)">
+  /✏️ Edit
+</span>
           </div>
         </div>
       </ng-template>
     </mwl-calendar-month-view>
     <!-- Botón para abrir modal cuando el día está activo -->
 
-    <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-end">
+    <div *ngIf="activeDayIsOpen && canCreateEvent() && coordinatorGroupIds.length > 0" class="mt-2 text-end">
       <button class="btn btn-outline-primary" (click)="openNewEventModal()">
         + Add Event on {{ selectedDate | date:'fullDate' }}
       </button>
@@ -212,7 +217,7 @@
     <button class="btn btn-secondary" (click)="modal.dismiss()">Close</button>
   </div>
 </ng-template>
-<ng-template #newEventModal  let-modal>
+<ng-template #eventModal  let-modal>
   <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
     <div *ngIf="loading" class="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center">
       <div class="w-10 h-10 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
@@ -221,11 +226,14 @@
     <h2 class="text-xl font-bold text-pink-600 mb-4">Create New Event</h2>
 
     <div class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Group</label>
+      <div class="mb-4 flex items-center gap-4">
+        <label class="text-sm font-medium text-gray-700">Group:</label>
         <select [(ngModel)]="newEvent.id_group" class="w-full border rounded px-3 py-2 mt-1">
           <option [value]="null" disabled>Select a group</option>
-          <option *ngFor="let group of groups" [value]="group.id_group">
+          <option
+            *ngFor="let group of groups"
+            [value]="group.id_group"
+            [disabled]="!isAdmin && !coordinatorGroupIds.includes(group.id_group)">
             {{ group.name }}
           </option>
         </select>
@@ -281,7 +289,12 @@
 
     <div class="flex justify-end gap-3 mt-6">
       <button class="bg-gray-200 px-4 py-2 rounded" (click)="modal.dismiss()">Cancel</button>
-      <button class="bg-pink-600 text-white px-4 py-2 rounded" (click)="createEvent()">Create</button>
+      <button
+        class="bg-pink-600 text-white px-4 py-2 rounded"
+        (click)="isEditing ? editEvent(editingEventId!) : createEvent()"
+      >
+        {{ isEditing ? 'Update' : 'Create' }}
+      </button>
     </div>
   </div>
 </ng-template>

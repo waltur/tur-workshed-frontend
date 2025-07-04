@@ -1,12 +1,11 @@
 <div class="groups-container mt-5">
   <h1 class="title text-center text-2xl font-bold text-pink-600 mb-6">My Groups</h1>
 
-  <div class="group-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-    <!-- class="group-card bg-white rounded-lg shadow p-4 text-center cursor-pointer transition transform hover:scale-105"!-->
+  <div class="group-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
     <div
-
       *ngFor="let group of groups"
       (click)="selectGroup(group)"
+
     >
       <div
         class="circle-avatar mx-auto mb-3 shadow-md overflow-hidden"
@@ -17,41 +16,46 @@
         }"
       ></div>
       <div class="group-name text-gray-800 font-semibold text-lg mt-2">{{ group.name }}</div>
+
+      <!-- Detalles del grupo seleccionado (solo si coincide con el seleccionado) -->
+      <div
+        *ngIf="selectedGroup?.id_group === group.id_group"
+        class="group-details mt-4 bg-white shadow-md rounded-lg p-4 text-left"
+      >
+        <h2 class="text-lg font-semibold mb-2 text-gray-800">Group Details</h2>
+        <p><strong>Name:</strong> {{ selectedGroup.name }}</p>
+        <p><strong>Description:</strong> {{ selectedGroup.description || 'No description available' }}</p>
+
+        <div *ngIf="groupCoordinator" class="mt-3 p-3 bg-blue-50 rounded border border-blue-300">
+          <h3 class="font-semibold text-blue-800">Coordinator</h3>
+          <p><strong>Name:</strong> {{ groupCoordinator.name || 'Unknown' }}</p>
+          <p><strong>Cell phone:</strong> {{ groupCoordinator.phone_number || 'Unknown' }}</p>
+          <p><strong>Email:</strong> {{ groupCoordinator.email || 'No email' }}</p>
+        </div>
+
+        <div class="mt-3">
+          <button mat-raised-button color="primary" (click)="toggleMembers(); $event.stopPropagation()">
+            {{ showMembers ? 'Hide Members' : 'View Members' }}
+          </button>
+        </div>
+
+        <div *ngIf="showMembers">
+          <div class="card-header flex justify-between items-center mt-3">
+            <h5 class="mb-0 text-base font-bold">Group Members</h5>
+            <button
+              class="btn btn-outline-primary btn-sm"
+              (click)="goToAddMembers(); $event.stopPropagation()">
+              <i class="bi bi-person-plus"></i> Add Members
+            </button>
+          </div>
+
+          <ul class="list-group list-group-flush mt-2">
+            <li class="list-group-item" *ngFor="let member of filteredGroupMembers">
+              {{ member.name }} - {{ member.email }} - {{ member.name_role }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- Detalles del grupo seleccionado -->
-  <div *ngIf="selectedGroup" class="group-details mt-10 bg-white shadow-md rounded-lg p-6">
-    <h2 class="text-xl font-semibold mb-3 text-gray-800">Group Details</h2>
-    <p><strong>Name:</strong> {{ selectedGroup.name }}</p>
-    <p><strong>Description:</strong> {{ selectedGroup.description || 'No description available' }}</p>
-    <div *ngIf="groupCoordinator" class="mt-4 p-4 bg-blue-50 rounded border border-blue-300">
-      <h3 class="font-semibold text-blue-800">Coordinator</h3>
-      <p><strong>Name:</strong> {{ groupCoordinator.name || 'Unknown' }}</p>
-      <p><strong>Cell phone:</strong> {{ groupCoordinator.phone_number || 'Unknown' }}</p>
-      <p><strong>Email:</strong> {{ groupCoordinator.email || 'No email' }}</p>
-    </div>
-    <div  class="mt-4">
-      <button mat-raised-button color="primary" (click)="toggleMembers()">
-        {{ showMembers ? 'Hide Members' : 'View Members' }}
-      </button>
-    </div>
-
-   <!-- <div *ngIf="showMembers" @fadeSlide class="card mt-4">-->
-      <div class="card-header flex justify-between items-center">
-        <h5 class="mb-0 text-lg font-bold">Group Members</h5>
-        <button
-          class="btn btn-outline-primary btn-sm"
-          (click)="goToAddMembers()">
-          <i class="bi bi-person-plus"></i> Add Members
-        </button>
-
-       </div>
-      <ul *ngIf="showMembers" class="list-group list-group-flush mt-2">
-        <li class="list-group-item" *ngFor="let member of filteredGroupMembers">
-          {{ member.name }} - {{ member.email }} - {{member.name_role}}
-        </li>
-      </ul>
-    </div>
- <!-- </div>-->
 </div>

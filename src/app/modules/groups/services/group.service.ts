@@ -108,7 +108,10 @@ deleteEvent(id: number): Observable<any> {
 updateEvent(id: number, eventData: any): Observable<any> {
   return this.http.put(`${this.eventUrl}/events/${id}`, eventData);
 }
-  getGroupRoles(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.participationUrl}/group-roles`);
-  }
+getGroupRoles(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.participationUrl}/group-roles`);
+}
+deleteTasksByEventId(id_event: number): Observable<any> {
+  return this.http.delete(`${this.eventUrl}/events/${id_event}/tasks`);
+}
 }

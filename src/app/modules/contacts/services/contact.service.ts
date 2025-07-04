@@ -37,5 +37,8 @@ export class ContactService {
   getContactById(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
+getContactJobRoles(id_contact: number) {
+  return this.http.get<any[]>(`${this.apiUrl}/job-roles/${id_contact}`);
+}
 
 }

@@ -22,7 +22,7 @@ interface EventTask {
 export class GroupCalendarComponent {
   CalendarView = CalendarView; // exponer enum para template
   @ViewChild('eventDetails') eventDetailsModal!: TemplateRef<any>;
-  @ViewChild('newEventModal') newEventModal!: TemplateRef<any>;
+  @ViewChild('eventModal') eventModal!: TemplateRef<any>;
   selectedEvent: any;
   view: CalendarView = CalendarView.Month;
   viewDate: Date = new Date();
@@ -44,6 +44,11 @@ eventTasks: EventTask[] = [];
 loading = false;
 events: CalendarEvent[] = [];
 isLogged = false;
+coordinatorGroupIds: number[] = [];
+isAdmin: boolean = true;
+isEditing: boolean = false;
+editingEventId: number | null = null;
+
 constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
 
 
@@ -51,6 +56,7 @@ constructor(private modalService: NgbModal, private groupService:GroupService, p
     this.loadGroups();
     this.loadAllEvents();
     this.isLogged = this.authService.isLoggedIn();
+    this.isAdmin = this.authService.isAdmin();
   }
 
 loadEventsByGroup(groupId: number): void {
@@ -67,6 +73,8 @@ loadEventsByGroup(groupId: number): void {
           description: event.description,
           group: event.group_name || '',
           location: event.location,
+          id_group: event.id_group,
+          tasks: event.tasks || []
         },
         color: {
           primary: '#EC4899',
@@ -103,13 +111,15 @@ loadAllEvents(): void {
 
         start: new Date(event.start),
         end: new Date(event.end),
-        meta: {
-          id_event: event.id_event,
-          description: event.description,
-          group: event.group_name || '',
-          registration_roles: event.registration_roles || [],
-          location: event.location,
-        },
+         meta: {
+           id_event: event.id_event,
+           description: event.description,
+           group: event.group_name || '',
+           registration_roles: event.registration_roles || [],
+           location: event.location,
+           id_group: event.id_group,
+           tasks: event.tasks || []
+         },
         color: {
           primary: '#10B981',
           secondary: '#D1FAE5'
@@ -122,9 +132,20 @@ loadAllEvents(): void {
   });
 }
 loadGroups(): void {
-  this.groupService.getGroups().subscribe({
-    next: (data) => this.groups = data,
-    error: () => console.error('Failed to load groups')
+  this.groupService.getGroups().subscribe(groups => {
+    this.groups = groups;
+
+    const myContactId = this.authService.getContactId(); // Asegúrate de tener esto implementado
+
+    this.coordinatorGroupIds = [];
+
+    groups.forEach(group => {
+      group.members?.forEach((member:any) => {
+        if (member.id_contact === myContactId && member.role_name === 'Coordinator') {
+          this.coordinatorGroupIds.push(group.id_group);
+        }
+      });
+    });
   });
 }
 
@@ -151,6 +172,7 @@ getRegistrationLabel(type: string): string {
   }
 }
 dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
+  if (this.isEditing) return;
   this.selectedDate = day.date;
   this.newEvent.start = day.date.toISOString().split('T')[0];
   this.newEvent.end = this.newEvent.start;
@@ -171,8 +193,42 @@ dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
     this.viewDate = day.date;
   }
 }
-openNewEventModal(): void {
-  this.modalService.open(this.newEventModal, { size: 'lg' });
+openNewEventModal(event?: any): void {
+  console.log("openNewEventModal");
+  this.isEditing = !!event;
+
+  if (event) {
+    this.editingEventId = event.meta?.id_event;
+     this.newEvent = {
+       id_event: event.meta?.id_event || null,  // 👈 agrega esta línea
+       title: event.title,
+       description: event.meta?.description || '',
+       start: this.formatDateTime(event.start),
+       end: this.formatDateTime(event.end),
+       id_group: event.meta?.id_group || null,
+       location: event.meta?.location || ''
+     };
+
+    this.eventTasks = event.meta?.tasks || [];
+  } else {
+    this.editingEventId = null;
+    this.newEvent = {
+      id_event: null,
+      title: '',
+      description: '',
+      start: '',
+      end: '',
+      id_group: null,
+      location: ''
+    };
+    this.eventTasks = [];
+  }
+
+  this.modalService.open(this.eventModal); // asegúrate que tienes el @ViewChild
+}
+formatDateTime(date: Date | string): string {
+  const d = new Date(date);
+  return d.toISOString().slice(0, 16); // formato compatible con input[type="datetime-local"]
 }
 addTask() {
   this.eventTasks.push({ task_name: '', time_range: '', volunteer_needed: 1 });
@@ -490,11 +546,14 @@ deleteEvent(eventId: number): void {
     }
   });
 }
-editEvent(): void {
-  const id_event = this.newEvent.id_event;
-
+editEvent(id_event: number): void {
   if (!id_event) {
     Swal.fire('Error', 'Missing event ID for update', 'error');
+    return;
+  }
+
+  if (!this.newEvent.title || !this.newEvent.id_group || !this.newEvent.start) {
+    Swal.fire('Missing data', 'Please complete all required fields', 'warning');
     return;
   }
 
@@ -503,14 +562,47 @@ editEvent(): void {
     description: this.newEvent.description,
     start: this.newEvent.start,
     end: this.newEvent.end,
-    id_group: this.newEvent.id_group
+    id_group: this.newEvent.id_group,
+    location: this.newEvent.location
   };
 
   this.groupService.updateEvent(id_event, updatedData).subscribe({
     next: () => {
-      Swal.fire('Success', 'Event updated successfully', 'success');
-      this.loadAllEvents();
-      this.modalService.dismissAll();
+      // Si no hay tareas, cerrar directamente
+      if (!this.eventTasks || this.eventTasks.length === 0) {
+        this.loadAllEvents();
+        this.modalService.dismissAll();
+        Swal.fire('Success', 'Event updated successfully (no tasks)', 'success');
+        return;
+      }
+
+      // ✅ Borrar tareas existentes y luego crear nuevas
+      this.groupService.deleteTasksByEventId(id_event).subscribe({
+        next: () => {
+          const taskCalls = this.eventTasks.map(task =>
+            this.groupService.createEventTask({
+              id_event,
+              task_name: task.task_name,
+              time_range: task.time_range,
+              volunteer_needed: task.volunteer_needed
+            })
+          );
+
+          forkJoin(taskCalls).subscribe({
+            next: () => {
+              this.loadAllEvents();
+              this.modalService.dismissAll();
+              Swal.fire('Success', 'Event and tasks updated successfully', 'success');
+            },
+            error: () => {
+              Swal.fire('Error', 'Event updated but failed to create tasks', 'error');
+            }
+          });
+        },
+        error: () => {
+          Swal.fire('Error', 'Failed to delete previous tasks', 'error');
+        }
+      });
     },
     error: () => {
       Swal.fire('Error', 'Failed to update event', 'error');

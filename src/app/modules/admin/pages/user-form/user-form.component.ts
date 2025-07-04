@@ -70,7 +70,7 @@ loadingUser: boolean = false;
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['',[Validators.required]], // solo requerido en "create"
-      phone_number: [''],
+      phone_number: ['',Validators.required],
     });
   }
 
@@ -178,6 +178,7 @@ submit(): void {
 
   const data = {
     ...this.userForm.value,
+    email: this.userForm.value.email?.toLowerCase(),
     roles: this.selectedRoles,
     job_roles: this.user.job_roles || []
   };
@@ -229,8 +230,8 @@ isVolunteerSelected(): boolean {
   }
 isFormValid(): boolean {
   // Validar campos obligatorios
-  const { username, email } = this.userForm.value;
-  if (!username || !email) {
+  const { username, email, phone_number } = this.userForm.value;
+  if (!username || !email || !phone_number) {
     return false;
   }
 
@@ -238,6 +239,7 @@ isFormValid(): boolean {
   if (this.selectedRoles.length === 0) {
     return false;
   }
+
 
   // Validar que si se selecciona "volunteer", al menos tenga un job_role
   const isVolunteer = this.selectedRoles.some(roleId => this.roleMap[roleId] === 'volunteer');

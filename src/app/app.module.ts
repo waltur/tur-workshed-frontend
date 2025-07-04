@@ -10,6 +10,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pal-button.component';
 
 
 
@@ -21,6 +22,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     NavbarComponent,
     FooterComponent,
     HomeComponent,
+    PayPalButtonComponent,
 
 
 
