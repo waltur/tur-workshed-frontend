@@ -208,8 +208,8 @@ openNewEventModal(event?: any): void {
        id_event: event.meta?.id_event || null,  // 👈 agrega esta línea
        title: event.title,
        description: event.meta?.description || '',
-      start: this.formatDateTimeLocal(event.start),
-      end: this.formatDateTimeLocal(event.end),
+      start: this.formatDateTime(event.start),
+      end: this.formatDateTime(event.end),
        id_group: event.meta?.id_group || null,
        location: event.meta?.location || ''
      };
@@ -235,18 +235,7 @@ formatDateTime(date: Date | string): string {
   const d = new Date(date);
   return d.toISOString().slice(0, 16); // formato compatible con input[type="datetime-local"]
 }
-formatDateTimeLocal(date: Date | string): string {
-  const d = new Date(date);
-  const pad = (n: number) => n.toString().padStart(2, '0');
 
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
 private parseDateTime(dateString?: string | null): Date {
   if (!dateString) {
     console.warn('parseDateTime recibió un valor inválido:', dateString);
@@ -261,6 +250,25 @@ private parseDateTime(dateString?: string | null): Date {
   const [hour, minute, second] = timePart.split(':').map(Number);
   return new Date(year, month - 1, day, hour, minute, second);
 }
+parseDateTimeLocal(dateString: string): Date {
+  // dateString ejemplo: "2025-07-04 21:41:00"
+  const [datePart, timePart] = dateString.split(' ');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second] = timePart.split(':').map(Number);
+
+  // Construir fecha local sin conversión
+  return new Date(year, month - 1, day, hour, minute, second);
+}
+formatDateTimeLocal(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 addTask() {
   this.eventTasks.push({ task_name: '', time_range: '', volunteer_needed: 1 });
 }
