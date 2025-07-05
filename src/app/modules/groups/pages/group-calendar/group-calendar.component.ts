@@ -67,8 +67,8 @@ loadEventsByGroup(groupId: number): void {
       this.events = data.map(event => ({
         title: event.title,
 
-       start: this.parseDateTime(event.start),
-       end: this.parseDateTime(event.end),
+       start: this.parseDateTimeRaw(event.start),
+       end: this.parseDateTimeRaw(event.end),
         meta: {
           id_event: event.id_event,
           description: event.description,
@@ -108,13 +108,13 @@ loadAllEvents(): void {
     next: (data) => {
       this.events = data.map(event => {
         console.log('Original start:', event.start);
-        const parsedStart = this.parseDateTime(event.start);
+        const parsedStart = this.parseDateTimeRaw(event.start);
         console.log('Parsed start:', parsedStart);
 
         return {
           title: event.title,
           start: parsedStart,
-          end: this.parseDateTime(event.end),
+          end: this.parseDateTimeRaw(event.end),
           meta: {
             id_event: event.id_event,
             description: event.description,
@@ -208,8 +208,8 @@ openNewEventModal(event?: any): void {
        id_event: event.meta?.id_event || null,  // 👈 agrega esta línea
        title: event.title,
        description: event.meta?.description || '',
-      start: this.formatDateTime(event.start),
-      end: this.formatDateTime(event.end),
+      start: this.formatDateTimeLocal(event.start),
+      end: this.formatDateTimeLocal(event.end),
        id_group: event.meta?.id_group || null,
        location: event.meta?.location || ''
      };
@@ -249,6 +249,27 @@ private parseDateTime(dateString?: string | null): Date {
   const [year, month, day] = datePart.split('-').map(Number);
   const [hour, minute, second] = timePart.split(':').map(Number);
   return new Date(year, month - 1, day, hour, minute, second);
+}
+private parseDateTimeRaw(dateString?: string | null): Date {
+  console.log("parseDateTimeRaw");
+  if (!dateString || typeof dateString !== 'string') {
+    console.warn('parseDateTimeRaw recibió valor inválido:', dateString);
+    return new Date();
+  }
+
+  const [datePart, timePart] = dateString.split(' ');
+  if (!datePart || !timePart) {
+    console.warn('Formato inesperado en parseDateTimeRaw:', dateString);
+    return new Date(dateString);
+  }
+
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second] = timePart.split(':').map(Number);
+
+  // 👇 Aquí creamos un string ISO local sin zona horaria
+  const isoString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+
+  return new Date(isoString); // Esto conserva la hora exacta sin ajustar a la zona local
 }
 parseDateTimeLocal(dateString: string): Date {
   // dateString ejemplo: "2025-07-04 21:41:00"
