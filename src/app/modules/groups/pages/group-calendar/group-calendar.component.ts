@@ -7,6 +7,7 @@ import { AuthService } from 'src/app/modules/auth/services/auth.service';
 import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { parse } from 'date-fns';
 
 interface EventTask {
                    task_name: string;
@@ -66,8 +67,8 @@ loadEventsByGroup(groupId: number): void {
       this.events = data.map(event => ({
         title: event.title,
 
-        start: new Date(event.start),
-        end: new Date(event.end),
+       start: this.parseDateTime(event.start),
+       end: this.parseDateTime(event.end),
         meta: {
           id_event: event.id_event,
           description: event.description,
@@ -101,31 +102,35 @@ prevMonth() {
   this.viewDate = prev;
 }
 loadAllEvents(): void {
-  console.log("loadAllEvents");
- const contactId = this.authService.getContactId() ?? undefined;
+  const contactId = this.authService.getContactId() ?? undefined;
 
   this.groupService.getAllEvents(contactId).subscribe({
     next: (data) => {
-      this.events = data.map(event => ({
-        title: event.title,
+      this.events = data.map(event => {
+        console.log('Original start:', event.start);
+        const parsedStart = this.parseDateTime(event.start);
+        console.log('Parsed start:', parsedStart);
 
-        start: new Date(event.start),
-        end: new Date(event.end),
-         meta: {
-           id_event: event.id_event,
-           description: event.description,
-           group: event.group_name || '',
-           registration_roles: event.registration_roles || [],
-           location: event.location,
-           id_group: event.id_group,
-           tasks: event.tasks || []
-         },
-        color: {
-          primary: '#10B981',
-          secondary: '#D1FAE5'
-        },
-        allDay: false
-      }));
+        return {
+          title: event.title,
+          start: parsedStart,
+          end: this.parseDateTime(event.end),
+          meta: {
+            id_event: event.id_event,
+            description: event.description,
+            group: event.group_name || '',
+            registration_roles: event.registration_roles || [],
+            location: event.location,
+            id_group: event.id_group,
+            tasks: event.tasks || []
+          },
+          color: {
+            primary: '#10B981',
+            secondary: '#D1FAE5'
+          },
+          allDay: false
+        };
+      });
       this.refresh.next();
     },
     error: () => console.error('Failed to load events')
@@ -203,8 +208,8 @@ openNewEventModal(event?: any): void {
        id_event: event.meta?.id_event || null,  // 👈 agrega esta línea
        title: event.title,
        description: event.meta?.description || '',
-       start: this.formatDateTime(event.start),
-       end: this.formatDateTime(event.end),
+      start: this.formatDateTimeLocal(event.start),
+      end: this.formatDateTimeLocal(event.end),
        id_group: event.meta?.id_group || null,
        location: event.meta?.location || ''
      };
@@ -229,6 +234,32 @@ openNewEventModal(event?: any): void {
 formatDateTime(date: Date | string): string {
   const d = new Date(date);
   return d.toISOString().slice(0, 16); // formato compatible con input[type="datetime-local"]
+}
+formatDateTimeLocal(date: Date | string): string {
+  const d = new Date(date);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+private parseDateTime(dateString?: string | null): Date {
+  if (!dateString) {
+    console.warn('parseDateTime recibió un valor inválido:', dateString);
+    return new Date(); // o el valor que prefieras usar por defecto
+  }
+  const [datePart, timePart] = dateString.split(' ');
+  if (!datePart || !timePart) {
+    console.warn('parseDateTime formato inesperado:', dateString);
+    return new Date(dateString); // intenta crear Date con lo que venga
+  }
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second] = timePart.split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
 }
 addTask() {
   this.eventTasks.push({ task_name: '', time_range: '', volunteer_needed: 1 });
