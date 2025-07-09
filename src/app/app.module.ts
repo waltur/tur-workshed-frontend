@@ -16,6 +16,7 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
 
 
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -23,6 +24,7 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
     FooterComponent,
     HomeComponent,
     PayPalButtonComponent,
+
 
 
 

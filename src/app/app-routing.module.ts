@@ -14,6 +14,7 @@ const routes: Routes = [
   { path: 'contacts',   loadChildren: () => import('./modules/contacts/contacts.module').then(m => m.ContactsModule)},
   { path: 'admin',canActivate: [AuthGuard], loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule) },
   { path: 'groups', loadChildren: () => import('./modules/groups/groups.module').then(m => m.GroupsModule) },
+  { path: 'news', loadChildren: () => import('./modules/news/news.module').then(m => m.NewsModule) },
 
   { path: '**', redirectTo: '' }
   ];

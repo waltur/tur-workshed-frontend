@@ -13,8 +13,10 @@ export class AdminComponent {
   navigateTo(section: string): void {
     if (section === 'users') {
       this.router.navigate(['/admin/users']);
-    } else if (section === 'groups') {
+    }else if (section === 'groups') {
       this.router.navigate(['/groups']);
-    }
+    }else if (section === 'news') {
+           this.router.navigate(['/news/create']);
+         }
   }
 }
