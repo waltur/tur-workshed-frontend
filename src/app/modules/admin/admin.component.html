@@ -1,39 +1,53 @@
 <!-- admin-panel.component.html -->
 <div class="container mt-5">
-<div class="max-w-5xl mx-auto p-6">
-  <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">Administration Panel</h2>
+  <div class="max-w-5xl mx-auto p-6">
+    <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">Administration Panel</h2>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Users Management Card -->
-    <div
-      class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
-      (click)="navigateTo('users')"
-    >
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Users</h3>
-      <p class="text-gray-600 text-sm">
-        View, create, edit, activate or deactivate users of the platform.
-      </p>
-    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Users Management Card -->
+      <div
+        class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+        (click)="navigateTo('users')"
+      >
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Users</h3>
+        <p class="text-gray-600 text-sm">
+          View, create, edit, activate or deactivate users of the platform.
+        </p>
+      </div>
 
-    <!-- Groups Management Card -->
-    <div
-      class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
-      (click)="navigateTo('groups')"
-    >
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Groups</h3>
-      <p class="text-gray-600 text-sm">
-        Create new community groups, assign members and schedule events.
-      </p>
-    </div>
-    <div
-      class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
-      (click)="navigateTo('news')"
-    >
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage News</h3>
-      <p class="text-gray-600 text-sm">
-        Create news.
-      </p>
+      <!-- Groups Management Card -->
+      <div
+        class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+        (click)="navigateTo('groups')"
+      >
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Groups</h3>
+        <p class="text-gray-600 text-sm">
+          Create new community groups, assign members and schedule events.
+        </p>
+      </div>
+
+      <!-- News Management Card -->
+      <div
+        class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+        (click)="navigateTo('news')"
+      >
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage News</h3>
+        <p class="text-gray-600 text-sm">
+          Create news.
+        </p>
+      </div>
+
+      <!-- Attendance Reports Card -->
+      <div
+        class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+        (click)="navigateTo('attendance-report')"
+      >
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Attendance Reports</h3>
+        <p class="text-gray-600 text-sm">
+          View, manage and download attendance reports with participant signatures.
+        </p>
+      </div>
     </div>
   </div>
 </div>
-</div>
+

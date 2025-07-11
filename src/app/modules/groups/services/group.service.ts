@@ -63,8 +63,14 @@ getEventsByGroup(groupId: number) {
   return this.http.get<any[]>(`${this.eventUrl}/group/${groupId}`);
 }
 
-createEvent(data: any): Observable<{ id_event: number }> {
-  return this.http.post<{ id_event: number }>(`${this.eventUrl}`, data);
+createEvent(data: any): Observable<{ id_event: number } | { id_event: number }[]> {
+  return this.http.post<{ id_event: number } | { id_event: number }[]>(`${this.eventUrl}`, data);
+}
+getEventAttendees(id_event: number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.eventUrl}/${id_event}/attendees`);
+}
+updateAttendance(id_event: number, id_contact: number, attended: boolean): Observable<any> {
+  return this.http.patch(`${this.eventUrl}/${id_event}/attendees/${id_contact}`, { attended });
 }
 // Timesheets
 getTimesheetsByEvent(eventId: number) {
@@ -114,4 +120,12 @@ getGroupRoles(): Observable<any[]> {
 deleteTasksByEventId(id_event: number): Observable<any> {
   return this.http.delete(`${this.eventUrl}/events/${id_event}/tasks`);
 }
+saveSignature(data: { id_event: number; id_contact: number; signature: string }) {
+  return this.http.post(`${this.eventUrl}/confirm-attendance/`, data);
+}
+getAttendanceReport(id_event: number) {
+  return this.http.get<any[]>(`${this.apiUrl}/${id_event}/attendance-report`);
+
+}
+
 }

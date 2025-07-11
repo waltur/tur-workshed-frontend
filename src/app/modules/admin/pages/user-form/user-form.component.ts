@@ -26,9 +26,13 @@ userForm!: FormGroup;
     name: '',
     phone_number:'',
     roles: [],
-    job_roles: []
+    job_roles: [],
+    emergency_contact: '',
+    photo: [''], // base64
   };
 loadingUser: boolean = false;
+photoPreview: string | null = null;
+photoBase64: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -63,7 +67,17 @@ loadingUser: boolean = false;
         this.selectedRoles = [...this.user.roles]; // 🔄 Clonamos los IDs para checkbox
       }
   }
+onPhotoSelected(event: Event): void {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
 
+  const reader = new FileReader();
+  reader.onload = () => {
+    this.photoBase64 = reader.result as string;
+    this.photoPreview = this.photoBase64;
+  };
+  reader.readAsDataURL(file); // convierte a base64
+}
   initForm(): void {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
@@ -71,6 +85,7 @@ loadingUser: boolean = false;
       email: ['', [Validators.required, Validators.email]],
       password: ['',[Validators.required]], // solo requerido en "create"
       phone_number: ['',Validators.required],
+      emergency_contact:[''],
     });
   }
 
@@ -180,7 +195,9 @@ submit(): void {
     ...this.userForm.value,
     email: this.userForm.value.email?.toLowerCase(),
     roles: this.selectedRoles,
-    job_roles: this.user.job_roles || []
+    job_roles: this.user.job_roles || [],
+    emergency_contact:this.userForm.value.emergency_contact,
+    photoBase64: this.photoBase64 || null
   };
 
   if (this.mode === 'create') {

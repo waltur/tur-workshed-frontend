@@ -1,0 +1,23 @@
+<div class="p-6 max-w-lg mx-auto bg-white rounded-lg shadow-md">
+  <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Confirm Attendance</h2>
+
+  <div class="border rounded-md shadow-md bg-gray-50 p-2">
+    <canvas #signatureCanvas class="w-full h-64 border border-gray-300 rounded"></canvas>
+  </div>
+
+  <div class="flex justify-center gap-4 mt-4">
+    <button
+      (click)="clearSignature()"
+      class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+    >
+      Clear
+    </button>
+
+    <button
+      (click)="saveSignature()"
+      class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+    >
+      Confirm
+    </button>
+  </div>
+</div>

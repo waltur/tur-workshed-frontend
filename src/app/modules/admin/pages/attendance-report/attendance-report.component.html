@@ -1,0 +1,41 @@
+<div class="p-5">
+  <h1 class="text-xl font-bold mb-4 text-gray-700">Attendance Report</h1>
+
+  <label class="block mb-2">Select Event:</label>
+  <select [(ngModel)]="selectedEventId" (change)="loadReport()" class="border p-2 rounded w-full mb-4">
+    <option *ngFor="let event of events" [value]="event.id_event">
+      {{ event.title }} ({{ event.start | date:'shortDate' }})
+    </option>
+  </select>
+
+  <div *ngIf="attendees.length">
+    <table class="w-full border text-sm">
+      <thead>
+      <tr class="bg-gray-100">
+        <th class="border p-2">Name</th>
+        <th class="border p-2">Emergency Contact</th>
+        <th class="border p-2">Date</th>
+        <th class="border p-2">Time In</th>
+        <th class="border p-2">Time Out</th>
+        <th class="border p-2">Signature</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let attendee of attendees">
+        <td class="border p-2">{{ attendee.name }}</td>
+        <td class="border p-2">{{ attendee.emergency_contact || '-' }}</td>
+        <td class="border p-2">{{ attendee.start | date:'shortDate' }}</td>
+        <td class="border p-2">{{ attendee.start | date:'shortTime' }}</td>
+        <td class="border p-2">{{ attendee.end | date:'shortTime' }}</td>
+        <td class="border p-2">
+          <img *ngIf="attendee.signature" [src]="attendee.signature" alt="signature" class="h-10"/>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <button (click)="downloadPDF()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      Download PDF
+    </button>
+  </div>
+</div>

@@ -7,6 +7,7 @@ import { UserListComponent } from './pages/user-list/user-list.component';
 import { UserFormComponent } from './pages/user-form/user-form.component';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AttendanceReportComponent } from './pages/attendance-report/attendance-report.component';
 
 
 @NgModule({
@@ -14,6 +15,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     AdminComponent,
     UserListComponent,
     UserFormComponent,
+    AttendanceReportComponent,
 
 
   ],

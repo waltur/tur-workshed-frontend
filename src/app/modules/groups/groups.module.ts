@@ -11,6 +11,7 @@ import { GroupEventsComponent } from './pages/group-events/group-events.componen
 import { GroupTimesheetsComponent } from './pages/group-timesheets/group-timesheets.component';
 import { GroupCalendarComponent } from './pages/group-calendar/group-calendar.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { FilterPipe } from 'src/app/shared/filter.pipe';
 
 import {
   CalendarModule,
@@ -20,8 +21,10 @@ import {
   CalendarWeekModule,
   CalendarDayModule,
 
+
 } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
+import { SignatureCaptureComponent } from './components/signature-capture/signature-capture.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +35,8 @@ import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
     GroupEventsComponent,
     GroupTimesheetsComponent,
     GroupCalendarComponent,
+    FilterPipe,
+    SignatureCaptureComponent,
   ],
   imports: [
     CommonModule,

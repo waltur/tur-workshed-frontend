@@ -8,6 +8,8 @@ import Swal from 'sweetalert2';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { parse } from 'date-fns';
+import { map } from 'rxjs/operators';
+
 
 interface EventTask {
                    task_name: string;
@@ -24,6 +26,7 @@ export class GroupCalendarComponent {
   CalendarView = CalendarView; // exponer enum para template
   @ViewChild('eventDetails') eventDetailsModal!: TemplateRef<any>;
   @ViewChild('eventModal') eventModal!: TemplateRef<any>;
+  @ViewChild('signatureModal') signatureModal!: TemplateRef<any>;
   selectedEvent: any;
   view: CalendarView = CalendarView.Month;
   viewDate: Date = new Date();
@@ -49,6 +52,16 @@ coordinatorGroupIds: number[] = [];
 isAdmin: boolean = true;
 isEditing: boolean = false;
 editingEventId: number | null = null;
+repeatType: '' | 'weekly' | 'monthly' = '';
+repeatCount: number = 1;
+repeatOption: 'once' | 'weekly' | 'monthly' = 'once';
+attendees: any[] = [];
+selectedAttendee: any = null;
+showAttendees = false;
+attendeeSearch = '';
+coordinator:any;
+loadingEvents = false;
+
 
 constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
 
@@ -61,34 +74,80 @@ constructor(private modalService: NgbModal, private groupService:GroupService, p
   }
 
 loadEventsByGroup(groupId: number): void {
-  console.log("loadEventsByGroup");
   this.groupService.getEventsByGroup(groupId).subscribe({
-    next: (data) => {
-      this.events = data.map(event => ({
-        title: event.title,
+    next: (eventsData: any[]) => {
+      const eventCalls = eventsData.map(event => {
+        return this.groupService.getGroupMembers(event.id_group).pipe(
+          map((members: any[]) => {
+            const coordinator = members.find((m: any) => m.name_role === 'Coordinator');
+            return {
+              title: event.title,
+              start: this.parseDateTimeRaw(event.start),
+              end: this.parseDateTimeRaw(event.end),
+              meta: {
+                id_event: event.id_event,
+                description: event.description,
+                group: event.group_name || '',
+                location: event.location,
+                id_group: event.id_group,
+                tasks: event.tasks || [],
+                coordinator: coordinator?.name || 'N/A',
+               // attended: event.attended || false,
+              },
+              color: {
+                primary: '#EC4899',
+                secondary: '#FCE7F3'
+              },
+              allDay: false
+            };
+          })
+        );
+      });
 
-       start: this.parseDateTimeRaw(event.start),
-       end: this.parseDateTimeRaw(event.end),
-        meta: {
-          id_event: event.id_event,
-          description: event.description,
-          group: event.group_name || '',
-          location: event.location,
-          id_group: event.id_group,
-          tasks: event.tasks || []
-        },
-        color: {
-          primary: '#EC4899',
-          secondary: '#FCE7F3'
-        },
-        allDay: false
-      }));
-      this.refresh.next();
+      forkJoin(eventCalls).subscribe((events: CalendarEvent[]) => {
+        this.events = events;
+        this.refresh.next();
+      });
     },
     error: (err) => {
       console.error('Error loading events for group:', err);
     }
   });
+}
+shouldShowSignature(e: CalendarEvent): boolean {
+  return e.meta?.registration_roles?.includes('Attendant') && !e.meta?.signature;
+}
+
+saveSignature(dataUrl: string, event: CalendarEvent) {
+  const contactId = this.authService.getContactId();
+  const id_event = event.meta.id_event;
+
+  this.groupService.saveSignature({ id_event, id_contact: contactId!, signature: dataUrl }).subscribe({
+    next: () => {
+      Swal.fire('Success', 'Signature saved successfully', 'success');
+      this.loadAllEvents(); // refrescar para que desaparezca
+    },
+    error: () => {
+      Swal.fire('Error', 'Failed to save signature', 'error');
+    }
+  });
+}
+toggleAttendees() {
+  this.showAttendees = !this.showAttendees;
+}
+
+onToggleAttendance(attendee: any) {
+  const newStatus = !attendee.attended;
+  this.groupService.updateAttendance(this.selectedEvent.meta.id_event, attendee.id_contact, newStatus)
+    .subscribe({
+      next: () => {
+        attendee.attended = newStatus;
+        Swal.fire('Updated', 'Attendance updated successfully', 'success');
+      },
+      error: () => {
+        Swal.fire('Error', 'Could not update attendance', 'error');
+      }
+    });
 }
 nextMonth() {
   const next = new Date(this.viewDate);
@@ -96,47 +155,60 @@ nextMonth() {
   this.viewDate = next;
 }
 
+
 prevMonth() {
   const prev = new Date(this.viewDate);
   prev.setMonth(prev.getMonth() - 1);
   this.viewDate = prev;
 }
 loadAllEvents(): void {
-  const contactId = this.authService.getContactId() ?? undefined;
+  this.loadingEvents = true;
+   const contactId = this.authService.getContactId() ?? undefined;
 
-  this.groupService.getAllEvents(contactId).subscribe({
-    next: (data) => {
-      this.events = data.map(event => {
-        console.log('Original start:', event.start);
-        const parsedStart = this.parseDateTimeRaw(event.start);
-        console.log('Parsed start:', parsedStart);
+   this.groupService.getAllEvents(contactId).subscribe({
+     next: (eventsData: any[]) => {
+       const eventCalls = eventsData.map(event =>
+         this.groupService.getGroupMembers(event.id_group).pipe(
+           map((members: any[]) => {
+             const coordinator = members.find((m: any) => m.name_role === 'Coordinator');
+             return {
+               title: event.title,
+               start: this.parseDateTimeRaw(event.start),
+               end: this.parseDateTimeRaw(event.end),
+               meta: {
+                 id_event: event.id_event,
+                 description: event.description,
+                 group: event.group_name || '',
+                 registration_roles: event.registration_roles || [],
+                 location: event.location,
+                 id_group: event.id_group,
+                 tasks: event.tasks || [],
+                 coordinator: coordinator?.name || 'N/A',
+                 attended: event.attended || false,
+                 signature: event.signature || null,
+               },
+               color: {
+                 primary: '#10B981',
+                 secondary: '#D1FAE5'
+               },
+               allDay: false
+             };
+           })
+         )
+       );
 
-        return {
-          title: event.title,
-          start: parsedStart,
-          end: this.parseDateTimeRaw(event.end),
-          meta: {
-            id_event: event.id_event,
-            description: event.description,
-            group: event.group_name || '',
-            registration_roles: event.registration_roles || [],
-            location: event.location,
-            id_group: event.id_group,
-            tasks: event.tasks || []
-          },
-          color: {
-            primary: '#10B981',
-            secondary: '#D1FAE5'
-          },
-          allDay: false
-        };
-      });
-      this.refresh.next();
-    },
-    error: () => console.error('Failed to load events')
-  });
-}
+       forkJoin(eventCalls).subscribe((events: CalendarEvent[]) => {
+         this.events = events;
+         this.refresh.next();
+          this.loadingEvents = false;
+       });
+     },
+
+     error: () =>{ this.loadingEvents = false; console.error('Failed to load events')}
+   });
+ }
 loadGroups(): void {
+  console.log("loadGroups");
   this.groupService.getGroups().subscribe(groups => {
     this.groups = groups;
 
@@ -148,12 +220,22 @@ loadGroups(): void {
       group.members?.forEach((member:any) => {
         if (member.id_contact === myContactId && member.role_name === 'Coordinator') {
           this.coordinatorGroupIds.push(group.id_group);
+          this.selectGroup(group.id_group);
         }
       });
     });
   });
 }
-
+selectGroup(id_group: any): void {
+  console.log("selectGroup");
+  this.groupService.getGroupMembers(id_group).subscribe(members => {
+    // Filtrar al coordinador
+    const coordinator = members.find(m => m.name_role === 'Coordinator');
+    if (coordinator) {
+      this.coordinator = coordinator;
+    }
+  });
+}
 onGroupChange(): void {
   if (this.selectedGroupId) {
     this.loadEventsByGroup(this.selectedGroupId);
@@ -305,43 +387,71 @@ createEvent(): void {
     Swal.fire('Missing data', 'Please select a group and enter a title/date', 'warning');
     return;
   }
+ const startDate = new Date(this.newEvent.start);
+  const endDate = new Date(this.newEvent.end);
+  if (endDate < startDate) {
+    this.loading = false;
+    Swal.fire('Invalid dates', 'End date cannot be before start date', 'error');
+    return;
+  }
+  const baseStart = new Date(this.newEvent.start);
+  const baseEnd = new Date(this.newEvent.end || this.newEvent.start);
+  const repeatCount = this.repeatOption === 'once' ? 1 : this.repeatCount;
 
-  const data = {
-    title: this.newEvent.title,
-    description: this.newEvent.description,
-    start: this.newEvent.start,
-    end: this.newEvent.end,
-    id_group: this.newEvent.id_group,
-    location:this.newEvent.location,
-  };
+  const eventsToCreate = [];
 
-  this.groupService.createEvent(data).subscribe({
-    next: (createdEvent) => {
-      const id_event = createdEvent.id_event;
+  for (let i = 0; i < (this.repeatOption === 'once' ? 1 : repeatCount); i++) {
+    const eventStart = new Date(baseStart);
+    const eventEnd = new Date(baseEnd);
 
-      // ✅ Si no hay tareas, finalizar directamente
-      if (!this.eventTasks || this.eventTasks.length === 0) {
+    if (this.repeatOption === 'weekly') {
+      eventStart.setDate(baseStart.getDate() + i * 7);
+      eventEnd.setDate(baseEnd.getDate() + i * 7);
+    } else if (this.repeatOption === 'monthly') {
+      eventStart.setMonth(baseStart.getMonth() + i);
+      eventEnd.setMonth(baseEnd.getMonth() + i);
+    }
+
+    eventsToCreate.push({
+      title: this.newEvent.title,
+      description: this.newEvent.description,
+      start: eventStart.toISOString().replace('T', ' ').slice(0, 19),
+      end: eventEnd.toISOString().replace('T', ' ').slice(0, 19),
+      id_group: this.newEvent.id_group,
+      location: this.newEvent.location
+    });
+  }
+
+  // Crear todos los eventos en paralelo
+  const eventCalls = eventsToCreate.map(eventData =>
+    this.groupService.createEvent(eventData)
+  );
+
+  forkJoin(eventCalls).subscribe({
+    next: (createdEvents: any[]) => {
+      const allTaskCalls = createdEvents.flatMap((event: any) =>
+        this.eventTasks.map(task =>
+          this.groupService.createEventTask({
+            id_event: event.id_event,
+            task_name: task.task_name,
+            time_range: task.time_range,
+            volunteer_needed: task.volunteer_needed
+          })
+        )
+      );
+
+      if (allTaskCalls.length === 0) {
         this.loading = false;
-        Swal.fire('Success', 'Event created successfully (no tasks)', 'success');
+        Swal.fire('Success', 'Event(s) created successfully (no tasks)', 'success');
         this.loadAllEvents();
         this.modalService.dismissAll();
         return;
       }
 
-      // ✅ Si hay tareas, hacer forkJoin
-      const taskCalls = this.eventTasks.map((task: any) =>
-        this.groupService.createEventTask({
-          id_event,
-          task_name: task.task_name,
-          time_range: task.time_range,
-          volunteer_needed: task.volunteer_needed
-        })
-      );
-
-      forkJoin(taskCalls).subscribe({
+      forkJoin(allTaskCalls).subscribe({
         next: () => {
           this.loading = false;
-          Swal.fire('Success', 'Event and tasks created successfully', 'success');
+          Swal.fire('Success', 'Event(s) and tasks created successfully', 'success');
           this.loadAllEvents();
           this.modalService.dismissAll();
         },
@@ -353,20 +463,34 @@ createEvent(): void {
     },
     error: () => {
       this.loading = false;
-      Swal.fire('Error', 'Failed to create event', 'error');
+      Swal.fire('Error', 'Failed to create events', 'error');
     }
   });
 }
+
 canCreateEvent(): boolean {
   return this.authService.isAdmin() ||
          this.authService.hasJobRole('Class/Group leaders');
          //||this.authService.hasJobRole('General support');
          }
-  handleEvent(event: CalendarEvent): void {
-    console.log("handleEvent");
-    this.selectedEvent = event;
-     this.modalService.open(this.eventDetailsModal, { size: 'md' });
-  }
+ handleEvent(event: CalendarEvent): void {
+   console.log("handleEvent");
+   this.selectedEvent = event;
+   const id_event = event.meta?.id_event;
+
+   if (this.isAdmin || this.coordinatorGroupIds.includes(event.meta?.id_group)) {
+     this.groupService.getEventAttendees(id_event).subscribe({
+       next: (data) => {
+         this.attendees = data;
+       },
+       error: () => {
+         console.error('Failed to load attendees');
+       }
+     });
+   }
+
+   this.modalService.open(this.eventDetailsModal, { size: 'md' });
+ }
 
   getEventsForSelectedDay(): CalendarEvent[] {
     console.log("getEventsForSelectedDay");
@@ -616,6 +740,12 @@ editEvent(id_event: number): void {
     Swal.fire('Missing data', 'Please complete all required fields', 'warning');
     return;
   }
+  const startDate = new Date(this.newEvent.start);
+  const endDate = new Date(this.newEvent.end);
+  if (endDate < startDate) {
+    Swal.fire('Invalid dates', 'End date cannot be before start date', 'error');
+    return;
+  }
 
   const updatedData = {
     title: this.newEvent.title,
@@ -669,5 +799,36 @@ editEvent(id_event: number): void {
     }
   });
 }
+openSignatureModal(event: any): void {
+  this.selectedEvent = event;
+  this.modalService.open(this.signatureModal);
+}
+
+onSignatureCompleted(dataUrl: string, event: any, modal: any) {
+  const contactId = Number(this.authService.getContactId());
+  const id_event = event.meta?.id_event;
+
+  if (!contactId || !id_event) {
+    console.error('Invalid contactId or id_event');
+    Swal.fire('Error', 'No se puede confirmar asistencia: faltan datos', 'error');
+    return;
+  }
+
+  this.groupService.saveSignature({
+    id_event: id_event,
+    id_contact: contactId!,
+    signature: dataUrl
+  }).subscribe({
+    next: () => {
+      Swal.fire('Asistencia confirmada', 'Firma registrada con éxito', 'success');
+      modal.close();
+      this.loadAllEvents();
+    },
+    error: () => {
+      Swal.fire('Error', 'No se pudo guardar la firma', 'error');
+    }
+  });
+}
+
 
 }

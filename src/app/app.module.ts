@@ -11,6 +11,8 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pal-button.component';
+//import { FilterPipe } from './shared/filter.pipe';
+
 
 
 
@@ -24,6 +26,8 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
     FooterComponent,
     HomeComponent,
     PayPalButtonComponent,
+   // FilterPipe,
+
 
 
 
