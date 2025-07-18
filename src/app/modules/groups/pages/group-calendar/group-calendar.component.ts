@@ -318,6 +318,7 @@ formatDateTime(date: Date | string): string {
   return d.toISOString().slice(0, 16); // formato compatible con input[type="datetime-local"]
 }
 
+
 private parseDateTime(dateString?: string | null): Date {
   if (!dateString) {
     console.warn('parseDateTime recibió un valor inválido:', dateString);
@@ -380,6 +381,7 @@ removeTask(index: number) {
   this.eventTasks.splice(index, 1);
 }
 createEvent(): void {
+  console.log("createEvent");
   this.loading = true;
 
   if (!this.newEvent.title || !this.newEvent.id_group || !this.newEvent.start) {
@@ -400,27 +402,19 @@ createEvent(): void {
 
   const eventsToCreate = [];
 
-  for (let i = 0; i < (this.repeatOption === 'once' ? 1 : repeatCount); i++) {
-    const eventStart = new Date(baseStart);
-    const eventEnd = new Date(baseEnd);
 
-    if (this.repeatOption === 'weekly') {
-      eventStart.setDate(baseStart.getDate() + i * 7);
-      eventEnd.setDate(baseEnd.getDate() + i * 7);
-    } else if (this.repeatOption === 'monthly') {
-      eventStart.setMonth(baseStart.getMonth() + i);
-      eventEnd.setMonth(baseEnd.getMonth() + i);
-    }
 
     eventsToCreate.push({
       title: this.newEvent.title,
       description: this.newEvent.description,
-      start: eventStart.toISOString().replace('T', ' ').slice(0, 19),
-      end: eventEnd.toISOString().replace('T', ' ').slice(0, 19),
+     start: this.newEvent.start, // convierte a UTC
+      end: this.newEvent.end,    // convierte a UTC
       id_group: this.newEvent.id_group,
-      location: this.newEvent.location
+      location: this.newEvent.location,
+      repeatType: this.repeatOption || '',   // 'weekly' o 'monthly'
+      repeatCount: repeatCount || 1,
     });
-  }
+
 
   // Crear todos los eventos en paralelo
   const eventCalls = eventsToCreate.map(eventData =>
@@ -467,7 +461,10 @@ createEvent(): void {
     }
   });
 }
-
+formatLocalDateTimeString(dateStr: string): string {
+  // Recibe "2025-07-17T22:55" y devuelve "2025-07-17 22:55:00"
+  return dateStr.replace('T', ' ') + ':00';
+}
 canCreateEvent(): boolean {
   return this.authService.isAdmin() ||
          this.authService.hasJobRole('Class/Group leaders');
