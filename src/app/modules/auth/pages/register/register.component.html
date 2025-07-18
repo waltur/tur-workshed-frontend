@@ -1,41 +1,130 @@
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
   <div class="bg-white shadow-md rounded-xl w-full max-w-md p-8">
 
+    <div *ngIf="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+      <div class="text-center">
+        <div class="inline-block w-8 h-8 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+        <p class="text-sm text-gray-500 mt-2">Loading...</p>
+      </div>
+    </div>
     <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">
       {{ step === 1 ? 'Register User' : 'Select Roles' }}
     </h2>
 
     <!-- Paso 1: Datos personales -->
     <form *ngIf="step === 1" [formGroup]="registerForm">
+      <!-- Full Name -->
       <label class="block mb-4">
         <span class="text-sm text-gray-700">Full Name</span>
         <input type="text" formControlName="name" class="input-style" />
       </label>
 
+      <!-- Phone -->
       <label class="block mb-4">
         <span class="text-sm text-gray-700">Phone Number</span>
         <input type="text" formControlName="phone_number" class="input-style" />
       </label>
 
+      <!-- Email -->
       <label class="block mb-4">
         <span class="text-sm text-gray-700">Email</span>
         <input type="email" formControlName="email" (blur)="checkEmail()" class="input-style" />
         <div *ngIf="emailInUse" class="text-red-600 text-sm mt-1">Email is already in use.</div>
       </label>
 
+      <!-- Emergency contact -->
+      <label class="block mb-4">
+        <span class="text-sm text-gray-700">Emergency Contact (optional)</span>
+        <input type="text" formControlName="emergency_contact" class="input-style" />
+      </label>
+
+      <!-- Username -->
       <label class="block mb-4">
         <span class="text-sm text-gray-700">Username</span>
         <input type="text" formControlName="username" (blur)="checkUsername()" class="input-style" />
         <div *ngIf="usernameInUse" class="text-red-600 text-sm mt-1">Username is already taken.</div>
       </label>
 
+      <!-- Password -->
       <label class="block mb-4">
         <span class="text-sm text-gray-700">Password</span>
         <div class="relative">
           <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="input-style pr-10" />
-          <button type="button" (click)="togglePasswordVisibility()" class="eye-button">{{ showPassword ? '🙈' : '👁' }}</button>
+          <button type="button" (click)="togglePasswordVisibility()" class="eye-button">
+            {{ showPassword ? '🙈' : '👁' }}
+          </button>
         </div>
       </label>
+
+      <!-- Age Range -->
+      <label class="block mb-4">
+        <span class="text-sm text-gray-700">Age Range</span>
+        <select formControlName="age_range" class="input-style">
+          <option value="" disabled selected>Select</option>
+          <option *ngFor="let age of ageRanges" [value]="age">{{ age }}</option>
+        </select>
+      </label>
+
+      <!-- Photo Permission -->
+      <label class="block mb-4">
+        <span class="text-sm text-gray-700">Do you allow us to use your photo?</span>
+        <div class="flex items-center gap-4 mt-1">
+          <label class="flex items-center gap-1">
+            <input type="radio" value="true" formControlName="photo_permission" /> Yes
+          </label>
+          <label class="flex items-center gap-1">
+            <input type="radio" value="false" formControlName="photo_permission" /> No
+          </label>
+        </div>
+      </label>
+      <!-- Subida de foto solo si acepta -->
+      <div *ngIf="registerForm.get('photo_permission')?.value === 'true'" class="mb-4">
+        <label class="block mb-2 text-sm text-gray-700">Upload Profile Photo</label>
+        <input type="file" (change)="onPhotoSelected($event)" accept="image/*" class="block w-full text-sm" />
+        <img *ngIf="photoPreview" [src]="photoPreview" class="mt-2 w-24 h-24 rounded-full object-cover border" />
+      </div>
+
+      <!-- Community preference -->
+      <label class="block mb-4">
+        <span class="text-sm text-gray-700">Community Notification Preference</span>
+        <select formControlName="community_preference" class="input-style">
+          <option value="Newsletter">Join monthly Newsletter</option>
+          <option value="WhatsApp">Join WhatsApp group</option>
+          <option value="Neither">Neither</option>
+        </select>
+      </label>
+
+      <!-- Acknowledgements -->
+      <div class="mb-4 text-sm text-gray-700">
+        <label class="block"><input type="checkbox" formControlName="acknowledged_rules" /> I read policies & waiver</label>
+        <label class="block"><input type="checkbox" formControlName="acknowledged_privacy" /> I accept the privacy policy</label>
+        <label class="block"><input type="checkbox" formControlName="acknowledged_code_of_conduct" /> I accept the code of conduct</label>
+        <label class="block"><input type="checkbox" formControlName="acknowledged_health_safety" /> I read health & safety manual</label>
+      </div>
+
+      <!-- Volunteer -->
+      <!--<div class="mb-4">
+        <label class="block text-sm text-gray-700 mb-2">Are you interested in volunteering?</label>
+        <div class="flex gap-4">
+          <label class="flex items-center">
+            <input type="radio" [value]="true" formControlName="wants_to_volunteer" [disabled]="wantsToVolunteerLocked && registerForm.get('wants_to_volunteer')?.value !== true" />
+            <span class="ml-2">Yes</span>
+          </label>
+          <label class="flex items-center">
+            <input type="radio" [value]="false" formControlName="wants_to_volunteer" [disabled]="wantsToVolunteerLocked && registerForm.get('wants_to_volunteer')?.value !== false" />
+            <span class="ml-2">No</span>
+          </label>
+        </div>
+      </div>-->
+
+      <!-- Volunteer document -->
+     <!--<div *ngIf="selectedRoleIds.includes(volunteerRoleId!)" class="mb-4">
+        <label class="block text-sm text-gray-700">Volunteer Agreement</label>
+        <div class="mt-1">
+          <label><input type="radio" formControlName="volunteer_acknowledgement" value="true" /> I accept the agreement</label><br />
+          <label><input type="radio" formControlName="volunteer_acknowledgement" value="false" /> I’m not a Volunteer</label>
+        </div>
+      </div>-->
 
       <button type="button" (click)="nextStep()"
               class="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded mt-2">

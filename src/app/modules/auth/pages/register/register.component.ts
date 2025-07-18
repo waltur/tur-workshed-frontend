@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { JobRoleService } from '../../services/job-role.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -24,6 +25,11 @@ isVolunteer = false;
 jobRoles: any[] = [];
 selectedJobRoleIds: number[] = [];
 volunteerRoleId: number | null = null;
+ageRanges = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+wantsToVolunteerLocked: boolean = false;
+loading:boolean=false;
+photoBase64: string | null = null;
+photoPreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -35,11 +41,24 @@ volunteerRoleId: number | null = null;
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
-       name: ['', Validators.required],
-       phone_number: [''],
-       email: ['', [Validators.required, Validators.email]],
-       username: ['', Validators.required],
-       password: ['', Validators.required]
+      name: ['', Validators.required],
+      phone_number: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      emergency_contact: [''],
+      username: ['', Validators.required],
+      password: ['', Validators.required],
+
+      age_range: ['', Validators.required],
+      photo_permission: [false, Validators.required],
+      community_preference: ['', Validators.required],
+
+      acknowledged_rules: [false, Validators.requiredTrue],
+      acknowledged_privacy: [false, Validators.requiredTrue],
+      acknowledged_code_of_conduct: [false, Validators.requiredTrue],
+      acknowledged_health_safety: [false, Validators.requiredTrue],
+
+      wants_to_volunteer: [false],
+      volunteer_acknowledgement: [false]
     });
     this.isAdmin = this.authService.isAdmin();
     this.roleService.getRoles().subscribe({
@@ -52,9 +71,26 @@ volunteerRoleId: number | null = null;
         this.registerError = 'Failed to load roles from server.';
       }
     });
+   /*this.registerForm.get('wants_to_volunteer')?.valueChanges.subscribe(value => {
+      if (value === true || value === false) {
+        this.wantsToVolunteerLocked = true;
+      }
+    });
+  */
   }
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
+}
+onPhotoSelected(event: Event): void {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    this.photoPreview = reader.result as string;
+    this.photoBase64 = this.photoPreview;  // ya en formato base64 para backend
+  };
+  reader.readAsDataURL(file);
 }
 submit(): void {
   if (this.registerForm.invalid) {
@@ -63,35 +99,81 @@ submit(): void {
   }
 
   if (this.emailInUse) {
-    this.registerError = 'This email is already registered.';
+    Swal.fire({
+      icon: 'error',
+      title: 'Email already in use',
+      text: 'Please use a different email address.',
+      confirmButtonColor: '#e91e63'
+    });
     return;
   }
+
   if (this.selectedRoleIds.length === 0) {
-    this.registerError = 'Please select at least one role.';
+    Swal.fire({
+      icon: 'warning',
+      title: 'No role selected',
+      text: 'You must select at least one role to continue.',
+      confirmButtonColor: '#e91e63'
+    });
     return;
   }
+
   if (this.usernameInUse) {
-    this.registerError = 'This username is already taken.';
+    Swal.fire({
+      icon: 'error',
+      title: 'Username taken',
+      text: 'Please choose another username.',
+      confirmButtonColor: '#e91e63'
+    });
     return;
   }
- const formValue = this.registerForm.value;
- formValue.email = formValue.email.toLowerCase();
- const formData = {
+
+  const isVol = this.selectedRoleIds.includes(this.volunteerRoleId!);
+  console.log("isVol", isVol);
+
+  this.registerForm.patchValue({
+    wants_to_volunteer: isVol,
+    volunteer_acknowledgement: isVol
+  });
+
+  const formValue = this.registerForm.value;
+  formValue.email = formValue.email.toLowerCase();
+
+  const formData = {
     ...this.registerForm.value,
     roles: this.selectedRoleIds,
     job_roles: this.selectedJobRoleIds
   };
+  if (this.registerForm.get('photo_permission')?.value === 'true' && this.photoBase64) {
+    formData.photoBase64 = this.photoBase64;
+  }
+  this.loading = true; // ⏳ Inicia loading
 
   this.authService.register(formData).subscribe({
     next: () => {
-      alert('Registration successful! You can now log in.');
-      this.router.navigate(['/login']);
+      this.loading = false; // ✅ Finaliza loading
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Complete',
+        text: 'You can now log in.',
+        confirmButtonColor: '#e91e63'
+      }).then(() => {
+        this.router.navigate(['/login/email-sent'], { queryParams: { email: formValue.email } });
+      });
     },
     error: () => {
-      this.registerError = 'Registration failed. Email may already be in use.';
+      this.loading = false; // ❌ Finaliza loading si ocurre error
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed',
+        text: 'Something went wrong. Please try again later.',
+        confirmButtonColor: '#e91e63'
+      });
     }
   });
 }
+
+
 checkEmail(): void {
   const email = this.registerForm.get('email')?.value;
   if (!email) return;
@@ -110,31 +192,88 @@ checkUsername(): void {
   });
 }
 nextStep(): void {
-  if (this.step === 1 && this.registerForm.invalid) {
-    this.registerForm.markAllAsTouched();
+  if (this.step === 1) {
+    if (this.registerForm.invalid) {
+      const invalidFields = this.getInvalidFieldNames();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete form',
+        html: `Please complete:<br><strong>${invalidFields.join(', ')}</strong>`,
+        confirmButtonColor: '#e91e63'
+      });
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+
+    this.step++;
     return;
   }
 
   if (this.step === 2) {
-   // this.isVolunteer = this.getSelectedRoleNames().includes('volunteer');
+    if (this.selectedRoleIds.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No role selected',
+        text: 'Please select at least one role.',
+        confirmButtonColor: '#e91e63'
+      });
+      return;
+    }
+
     this.isVolunteer = this.selectedRoleIds.includes(this.volunteerRoleId!);
+   // const selectedVol = this.registerForm.get('wants_to_volunteer')?.value;
+
+   /* if (this.isVolunteer && selectedVol === false) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Conflict Detected',
+        text: 'You selected "No" for volunteering but chose the volunteer role.',
+        confirmButtonColor: '#e91e63'
+      });
+      return;
+    }
+
+    if (!this.isVolunteer && selectedVol === true) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Conflict Detected',
+        text: 'You said you want to volunteer but did not select the volunteer role.',
+        confirmButtonColor: '#e91e63'
+      });
+      return;
+    }*/
 
     if (this.isVolunteer) {
       this.jobRoleService.getVolunteerFunctions().subscribe(data => {
         this.jobRoles = data;
-        this.step = 3; // ir al paso 3 después de cargar funciones
+        this.step = 3;
       });
-      return; // esperar hasta que se cargue
     } else {
-      this.submit(); // si no es voluntario, terminar
-      return;
+      this.submit();
     }
   }
 
-  this.step++;
+  if (this.step === 3) {
+    if (this.selectedJobRoleIds.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No volunteer function selected',
+        text: 'Please select at least one volunteer task.',
+        confirmButtonColor: '#e91e63'
+      });
+      return;
+    }
+
+    this.submit();
+  }
 }
+
 backStep(): void {
   this.step = 1;
+ // const wantsToVolunteer = this.registerForm.get('wants_to_volunteer')?.value;
+ // if (wantsToVolunteer === true || wantsToVolunteer === false) {
+ //   this.wantsToVolunteerLocked = true;
+ // }
 }
 toggleRole(roleId: number): void {
   console.log("toggleRole");
@@ -167,6 +306,34 @@ toggleJobRole(jobId: number): void {
   } else {
     this.selectedJobRoleIds.splice(index, 1);
   }
+}
+getInvalidFieldNames(): string[] {
+  const fieldLabels: Record<string, string> = {
+    name: 'Full Name',
+    phone_number: 'Phone Number',
+    email: 'Email',
+    emergency_contact: 'Emergency Contact',
+    username: 'Username',
+    password: 'Password',
+    age_range: 'Age Range',
+    photo_permission: 'Photo Permission',
+    community_preference: 'Community Group Preference',
+    acknowledged_rules: 'Member Agreement',
+    acknowledged_privacy: 'Privacy Policy',
+    acknowledged_code_of_conduct: 'Code of Conduct',
+    acknowledged_health_safety: 'Health & Safety Manual',
+ //   wants_to_volunteer: 'Volunteer Option',
+    volunteer_acknowledgement: 'Volunteer Documents'
+  };
+
+  const invalidFields: string[] = [];
+  Object.keys(this.registerForm.controls).forEach(field => {
+    const control = this.registerForm.get(field);
+    if (control && control.invalid) {
+      invalidFields.push(fieldLabels[field] || field);
+    }
+  });
+  return invalidFields;
 }
 
 }

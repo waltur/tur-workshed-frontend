@@ -72,20 +72,26 @@ submit(): void {
           this.router.navigate(['/']);
         }
       },
-      error: (error) => {
-        let message = 'Invalid email or password.';
-        if (error.status === 401 && error.error?.message) {
-          message = error.error.message;
-        } else if (error.status === 0) {
-          message = 'Unable to connect to the server.';
-        }
+   error: (error) => {
+     let message = 'Invalid email or password.';
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: message
-        });
-      }
+     if (error.status === 403) {
+       Swal.fire('Email not verified', error.error.message, 'warning');
+       return; // ⚠️ Detener ejecución para no mostrar también la alerta genérica
+     }
+
+     if (error.status === 401 && error.error?.message) {
+       message = error.error.message;
+     } else if (error.status === 0) {
+       message = 'Unable to connect to the server.';
+     }
+
+     Swal.fire({
+       icon: 'error',
+       title: 'Login Failed',
+       text: message
+     });
+   }
     });
 }
 togglePasswordVisibility(): void {

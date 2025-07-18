@@ -1,0 +1,21 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+  <div class="bg-white shadow-md rounded-lg p-6 max-w-md text-center">
+    <h1 class="text-2xl font-bold text-pink-600 mb-4">🎉 Thanks for registering!</h1>
+    <p class="text-gray-700">
+      We've sent a verification email{{ email ? ' to ' + email : '' }}.
+      <br />
+      Please check your inbox and click the link to activate your account.
+    </p>
+    <!-- 🔁 Reenviar -->
+    <button
+      (click)="resendEmail()"
+      [disabled]="loading"
+      class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+    >
+      {{ loading ? 'Resending...' : 'Resend Email' }}
+    </button>
+    <a routerLink="/login" class="inline-block mt-6 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700">
+      Go to Login
+    </a>
+  </div>
+</div>

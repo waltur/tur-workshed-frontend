@@ -8,9 +8,11 @@ import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { VerifyEmailComponent } from './components/verify-email/verify-email.component';
+import { EmailSentComponent } from './components/email-sent/email-sent.component';
 
 @NgModule({
-  declarations: [LoginComponent, RegisterComponent, ForgotPasswordComponent, ResetPasswordComponent],
+  declarations: [LoginComponent, RegisterComponent, ForgotPasswordComponent, ResetPasswordComponent, VerifyEmailComponent, EmailSentComponent],
   imports: [
     CommonModule,
     AuthRoutingModule,

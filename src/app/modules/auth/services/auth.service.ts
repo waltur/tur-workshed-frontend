@@ -197,4 +197,10 @@ resetPassword(token: string, newPassword: string) {
     { token, newPassword }
   );
 }
+resendVerificationEmail(email: string) {
+  return this.http.post(`${this.apiUrl}/resend-verification`, { email });
+}
+verifyEmailToken(token: string) {
+  return this.http.get<{ message: string }>(`${this.apiUrl}/verify-email/${token}`);
+}
 }

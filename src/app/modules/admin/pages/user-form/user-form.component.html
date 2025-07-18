@@ -1,6 +1,6 @@
 <div class="container mt-5">
   <div class="max-w-3xl mx-auto p-6 bg-white shadow rounded">
-    <h2 class="text-xl font-semibold text-pink-600 mb-4">
+    <h2 class="text-xl font-semibold text-pink-600 mb-4 text-center">
       {{ mode === 'edit' ? 'Edit User' : 'Create New User' }}
     </h2>
 
@@ -11,56 +11,80 @@
 
     <div *ngIf="!loadingUser">
       <form [formGroup]="userForm" (ngSubmit)="submit()" enctype="multipart/form-data">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
+        <!-- ✅ Profile Photo Upload -->
+        <div class="flex flex-col items-center mb-6">
+          <div class="relative w-32 h-32 border-2 border-dashed border-pink-300 rounded-full overflow-hidden bg-gray-50 flex items-center justify-center mb-2">
+            <!-- Mostrar imagen actual o preview -->
+            <img
+              *ngIf="photoPreview || user?.photo_url"
+              [src]="photoPreview || getPhotoUrl(user.photo_url)"
+              alt="User Photo"
+              class="w-full h-full object-cover"
+            />
+
+            <!-- Texto si no hay imagen -->
+            <div *ngIf="!photoPreview && !user?.photo_url" class="text-center text-gray-400 text-sm absolute z-10">
+              <span class="block">Upload</span>
+              <span class="block">Profile Photo</span>
+            </div>
+
+            <!-- Overlay editable -->
+            <div
+              class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer"
+              (click)="fileInput.click()"
+            >
+              <span class="text-white text-sm">Cambiar foto</span>
+            </div>
+          </div>
+
+          <!-- Input oculto -->
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            (change)="onPhotoSelected($event)"
+            hidden
+          />
+        </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <!-- Full Name -->
-          <label class="block mb-4">
+          <label class="block">
             <span class="text-sm font-medium text-gray-700">Full Name</span>
             <input type="text" formControlName="name" class="border rounded px-3 py-2 w-full" />
           </label>
 
           <!-- Username -->
-          <div>
-            <label class="text-sm font-medium text-gray-700">Username</label>
+          <label class="block">
+            <span class="text-sm font-medium text-gray-700">Username</span>
             <input formControlName="username" class="border rounded px-3 py-2 w-full" />
-          </div>
+          </label>
 
           <!-- Email -->
-          <div>
-            <label class="text-sm font-medium text-gray-700">Email</label>
+          <label class="block">
+            <span class="text-sm font-medium text-gray-700">Email</span>
             <input formControlName="email" class="border rounded px-3 py-2 w-full" />
-          </div>
+          </label>
 
-          <!-- Phone Number -->
-          <label class="block mb-4">
+          <!-- Phone -->
+          <label class="block">
             <span class="text-sm font-medium text-gray-700">Phone Number</span>
             <input type="text" formControlName="phone_number" class="border rounded px-3 py-2 w-full" />
           </label>
 
-          <!-- Emergency Contact -->
-          <label class="block mb-4">
-            <span class="text-sm font-medium text-gray-700">Emergency Contact Number</span>
+          <!-- Emergency -->
+          <label class="block">
+            <span class="text-sm font-medium text-gray-700">Emergency Contact</span>
             <input type="text" formControlName="emergency_contact" class="border rounded px-3 py-2 w-full" />
           </label>
 
-          <!-- Photo Upload -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Photo (ID Size)</label>
-            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" class="mt-1" />
-            <div *ngIf="photoPreview" class="mt-2">
-              <img [src]="photoPreview" alt="Photo Preview" class="w-24 h-24 object-cover rounded border" />
-            </div>
-          </div>
-
-          <!-- Password (only for creation) -->
+          <!-- Password -->
           <div *ngIf="mode === 'create'">
             <label class="text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              formControlName="password"
-              class="border rounded px-3 py-2 w-full mt-1"
-              placeholder="Enter password"
-            />
+            <input type="password" formControlName="password"
+                   class="border rounded px-3 py-2 w-full mt-1"
+                   placeholder="Enter password" />
           </div>
         </div>
 

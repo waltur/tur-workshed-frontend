@@ -5,6 +5,7 @@ import { AdminService } from '../../services/admin.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { RoleService } from '../../../auth/services/role.service';
 import { JobRoleService } from '../../../auth/services/job-role.service';
+import { environment } from 'src/environments/environment';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -33,6 +34,7 @@ userForm!: FormGroup;
 loadingUser: boolean = false;
 photoPreview: string | null = null;
 photoBase64: string | null = null;
+mediaUrl = environment.mediaUrl;
 
   constructor(
     private fb: FormBuilder,
@@ -108,6 +110,7 @@ loadRoles(): Promise<void> {
   });
 }
 loadUser(id: number): void {
+  console.log("load User");
   this.loadingUser = true;
   this.adminService.getUserById(id).subscribe({
     next: user => {
@@ -116,7 +119,9 @@ loadUser(id: number): void {
         username: user.username,
         email: user.email,
         name: user.name,
-        phone_number:user.phone_number
+        phone_number:user.phone_number,
+        emergency_contact:user.emergency_contact,
+        photo_url: user.photo_url || null
 
       });
 
@@ -125,7 +130,8 @@ loadUser(id: number): void {
         username: user.username,
         email: user.email,
         roles: [],
-        job_roles: user.job_roles || []
+        job_roles: user.job_roles || [],
+        photo_url: user.photo_url || null
       };
 
       // ✅ Convertimos los nombres de roles a sus IDs
@@ -265,5 +271,11 @@ isFormValid(): boolean {
   }
 
   return true;
+}
+getPhotoUrl(filename?: string): string {
+  console.log("getPhotoUrl", filename);
+  return filename
+    ? `${this.mediaUrl}${filename.replace('/public', '')}`
+    : 'assets/images/default-profile.png';
 }
 }
