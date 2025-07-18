@@ -127,5 +127,8 @@ getAttendanceReport(id_event: number) {
   return this.http.get<any[]>(`${this.apiUrl}/${id_event}/attendance-report`);
 
 }
+deleteEventCascade(id: number): Observable<any> {
+  return this.http.delete(`${this.eventUrl}/events/cascade/${id}`);
+}
 
 }

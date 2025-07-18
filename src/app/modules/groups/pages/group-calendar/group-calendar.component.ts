@@ -696,7 +696,6 @@ confirmDeleteEvent(event: any): void {
 }
 
 deleteEvent(eventId: number): void {
-  console.log("delete event");
   Swal.fire({
     title: 'Are you sure?',
     text: 'This will permanently delete the event.',
@@ -716,12 +715,31 @@ deleteEvent(eventId: number): void {
             text: 'The event has been deleted.'
           });
         },
-        error: () => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'There was a problem deleting the event.'
-          });
+        error: (error) => {
+          if (error.status === 409) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Associated timesheets found',
+              text: 'This event has timesheets linked to it. Do you want to delete everything?',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, delete all',
+              cancelButtonText: 'Cancel'
+            }).then(confirmCascade => {
+              if (confirmCascade.isConfirmed) {
+                // Llama a delete cascade
+                this.groupService.deleteEventCascade(eventId).subscribe(() => {
+                  this.loadAllEvents();
+                  Swal.fire('Deleted!', 'Event and timesheets deleted.', 'success');
+                });
+              }
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'There was a problem deleting the event.'
+            });
+          }
         }
       });
     }
