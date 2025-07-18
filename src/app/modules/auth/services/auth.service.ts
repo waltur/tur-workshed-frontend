@@ -26,12 +26,12 @@ export class AuthService {
   userInfo$ = this.userInfoSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {}
-login(email: string, password: string): Observable<any> {
+login(email: string, password: string): Observable<{ accessToken: string; refreshToken: string }> {
   return this.http.post<{ accessToken: string; refreshToken: string }>(
     `${this.apiUrl}/login`,
     { email, password }
   ).pipe(
-    map((res: { accessToken: string; refreshToken: string }) => {
+    map(res => {
       localStorage.setItem(this.tokenKey, res.accessToken);
       localStorage.setItem(this.refreshKey, res.refreshToken);
       this.updateUserInfo();
@@ -46,12 +46,10 @@ login(email: string, password: string): Observable<any> {
       return res;
     }),
     catchError(err => {
-      console.error('Login error (catchError):', err);
       return throwError(() => err);
     })
   );
 }
-
   getUserRoles(): string[] {
     const token = this.getToken();
     if (!token) return [];

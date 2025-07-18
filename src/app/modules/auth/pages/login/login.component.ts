@@ -3,7 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { finalize } from 'rxjs/operators';
+import { timeout, catchError,finalize } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -39,26 +40,37 @@ showRegistrationMessage() {
   }, 8000);
 }
 submit(): void {
-  this.loading=true;
-  console.log("login");
+  this.loading = true;
   this.loginError = '';
+  console.log("login");
+
   if (this.loginForm.invalid) {
     this.loginForm.markAllAsTouched();
-    this.loading=false;
+    this.loading = false;
     Swal.fire({
       icon: 'error',
       title: 'Login Failed',
       text: 'Please fill in all required fields.'
     });
-
     return;
   }
-
 
   const { email, password } = this.loginForm.value;
 
   this.authService.login(email, password)
-    .pipe(finalize(() => this.loading = false))
+    .pipe(
+      timeout(10000), // ❗10 segundos de espera máxima
+      catchError(err => {
+        if (err.name === 'TimeoutError') {
+          return throwError(() => ({
+            status: 408,
+            message: 'Login timed out. Invalid email or password, please try again.'
+          }));
+        }
+        return throwError(() => err);
+      }),
+      finalize(() => this.loading = false)
+    )
     .subscribe({
       next: () => {
         const roles = this.authService.getUserRoles();
@@ -72,26 +84,30 @@ submit(): void {
           this.router.navigate(['/']);
         }
       },
-   error: (error) => {
-     let message = 'Invalid email or password.';
+      error: (error) => {
+        console.error('Error en login:', error);
 
-     if (error.status === 403) {
-       Swal.fire('Email not verified', error.error.message, 'warning');
-       return; // ⚠️ Detener ejecución para no mostrar también la alerta genérica
-     }
+        let message = 'Invalid email or password.';
 
-     if (error.status === 401 && error.error?.message) {
-       message = error.error.message;
-     } else if (error.status === 0) {
-       message = 'Unable to connect to the server.';
-     }
+        if (error.status === 403) {
+          Swal.fire('Email not verified', error.message || 'Your account needs verification.', 'warning');
+          return;
+        }
 
-     Swal.fire({
-       icon: 'error',
-       title: 'Login Failed',
-       text: message
-     });
-   }
+        if (error.status === 408) {
+          message = error.message || 'Request timed out.';
+        } else if (error.status === 401 && error.message) {
+          message = error.message;
+        } else if (error.status === 0) {
+          message = 'Unable to connect to the server.';
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: message
+        });
+      }
     });
 }
 togglePasswordVisibility(): void {
