@@ -90,7 +90,15 @@ submit(): void {
         let message = 'Invalid email or password.';
 
         if (error.status === 403) {
-          Swal.fire('Email not verified', error.message || 'Your account needs verification.', 'warning');
+          Swal.fire('Email not verified', 'Please verify your email before logging in.' || 'Your account needs verification.', 'warning');
+         /* Swal.fire({
+            icon: 'info',
+            title: 'Verify your email',
+            html: `
+              Please verify your email before logging in.<br>
+              <strong><a href="/resend-verification">Resend verification email</a></strong>
+            `,
+          });*/
           return;
         }
 
