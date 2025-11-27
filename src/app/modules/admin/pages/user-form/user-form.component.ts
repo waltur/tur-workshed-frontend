@@ -186,31 +186,64 @@ toggleRole(roleId: number): void {
 }
 
 submit(): void {
-  this.user.roles = [...this.selectedRoles];
 
-  if (!this.isFormValid()) {
+  // 1. Validación general REACTIVA
+ /* if (this.userForm.invalid) {
     Swal.fire({
       icon: 'warning',
-      title: 'Incomplete Form',
-      text: 'Please fill in all required fields. If volunteer is selected, at least one function must be selected.',
+      title: 'Invalid Form',
+      text: 'Please fill in all required fields correctly.'
+    });
+    return;
+  }*/
+
+  // 2. Validación específica de email
+  if (this.userForm.controls['email'].invalid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Email',
+      text: 'Please enter a valid email address.'
     });
     return;
   }
 
+  // 3. Validación de roles
+  this.user.roles = [...this.selectedRoles];
+  if (this.selectedRoles.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Role',
+      text: 'Please select at least one role.'
+    });
+    return;
+  }
+
+  // 4. Validación de voluntarios
+  if (this.isVolunteerSelected() && this.user.job_roles.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Volunteer Functions Required',
+      text: 'If volunteer is selected, you must choose at least one function.'
+    });
+    return;
+  }
+
+  // 5. Construcción del payload final
   const data = {
     ...this.userForm.value,
     email: this.userForm.value.email?.toLowerCase(),
     roles: this.selectedRoles,
     job_roles: this.user.job_roles || [],
-    emergency_contact:this.userForm.value.emergency_contact,
     photoBase64: this.photoBase64 || null
   };
 
+  // --- CREATE ---
   if (this.mode === 'create') {
     if (!data.password) {
       Swal.fire('Warning', 'Password is required to create user', 'warning');
       return;
     }
+
     this.adminService.createUser(data).subscribe({
       next: () => {
         Swal.fire('Success', 'User created successfully', 'success').then(() =>
@@ -219,8 +252,11 @@ submit(): void {
       },
       error: () => Swal.fire('Error', 'Failed to create user', 'error')
     });
-  } else {
-    delete data.password; // No cambiar contraseña en edición
+  }
+
+  // --- UPDATE ---
+  else {
+    delete data.password;
     this.adminService.updateUser(this.userId, data).subscribe({
       next: () => {
         Swal.fire('Success', 'User updated successfully', 'success').then(() =>
@@ -231,6 +267,7 @@ submit(): void {
     });
   }
 }
+
 
 isVolunteerSelected(): boolean {
   return this.user.roles?.some((roleId: string | number) => {
