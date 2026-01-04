@@ -1,23 +1,18 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { RouterModule } from '@angular/router';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HomeComponent } from './pages/home/home.component';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pal-button.component';
 
-//import { FilterPipe } from './shared/filter.pipe';
-
-
-
-
-
+import { provideNgxMask } from 'ngx-mask';
+import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
 
 
 @NgModule({
@@ -26,13 +21,7 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
     NavbarComponent,
     FooterComponent,
     HomeComponent,
-    PayPalButtonComponent,
-
-   // FilterPipe,
-
-
-
-
+    PayPalButtonComponent
 
   ],
   imports: [
@@ -40,17 +29,16 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
     AppRoutingModule,
     RouterModule,
     HttpClientModule,
-    BrowserAnimationsModule,
-
-
-
-
+    BrowserAnimationsModule
   ],
-  providers: [ {
-                  provide: HTTP_INTERCEPTORS,
-                  useClass: TokenRefreshInterceptor,
-                  multi: true
-                }],
+  providers: [
+    provideNgxMask(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenRefreshInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

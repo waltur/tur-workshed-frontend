@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+
 import { AuthRoutingModule } from './auth-routing.module';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
@@ -11,15 +11,24 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 import { VerifyEmailComponent } from './components/verify-email/verify-email.component';
 import { EmailSentComponent } from './components/email-sent/email-sent.component';
 
+import { SharedModule } from 'src/app/shared/shared.module';
+
 @NgModule({
-  declarations: [LoginComponent, RegisterComponent, ForgotPasswordComponent, ResetPasswordComponent, VerifyEmailComponent, EmailSentComponent],
+  declarations: [
+    LoginComponent,
+    RegisterComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
+    VerifyEmailComponent,
+    EmailSentComponent
+  ],
   imports: [
     CommonModule,
     AuthRoutingModule,
     ReactiveFormsModule,
+    FormsModule,          // ✔ NECESARIO AQUÍ
     HttpClientModule,
-    FormsModule,
-
+    SharedModule          // ✔ Ahora SharedModule funciona sin errores
   ]
 })
-export class AuthModule { }
+export class AuthModule {}

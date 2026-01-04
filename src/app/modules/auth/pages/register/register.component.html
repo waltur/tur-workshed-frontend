@@ -20,10 +20,15 @@
       </label>
 
       <!-- Phone -->
-      <label class="block mb-4">
+     <!-- <label class="block mb-4">
         <span class="text-sm text-gray-700">Phone Number</span>
         <input type="text" formControlName="phone_number" class="input-style" />
-      </label>
+      </label>-->
+      <phone-input
+        label="Phone Number"
+        [value]="registerForm.value.phone_number"
+        (valueChange)="registerForm.controls['phone_number'].setValue($event)">
+      </phone-input>
 
       <!-- Email -->
       <label class="block mb-4">
@@ -33,10 +38,15 @@
       </label>
 
       <!-- Emergency contact -->
-      <label class="block mb-4">
+     <!-- <label class="block mb-4">
         <span class="text-sm text-gray-700">Emergency Contact (optional)</span>
         <input type="text" formControlName="emergency_contact" class="input-style" />
-      </label>
+      </label>-->
+      <phone-input
+        label="Emergency Contact (optional)"
+        [value]="registerForm.value.emergency_contact"
+        (valueChange)="registerForm.controls['emergency_contact'].setValue($event)">
+      </phone-input>
 
       <!-- Username -->
       <label class="block mb-4">
@@ -70,15 +80,15 @@
         <span class="text-sm text-gray-700">Do you allow us to use your photo?</span>
         <div class="flex items-center gap-4 mt-1">
           <label class="flex items-center gap-1">
-            <input type="radio" value="true" formControlName="photo_permission" /> Yes
+            <input type="radio" [value]="true" formControlName="photo_permission" /> Yes
           </label>
           <label class="flex items-center gap-1">
-            <input type="radio" value="false" formControlName="photo_permission" /> No
+            <input type="radio" [value]="false" formControlName="photo_permission" /> No
           </label>
         </div>
       </label>
       <!-- Subida de foto solo si acepta -->
-      <div *ngIf="registerForm.get('photo_permission')?.value === 'true'" class="mb-4">
+      <div *ngIf="registerForm.get('photo_permission')?.value === true" class="mb-4">
         <label class="block mb-2 text-sm text-gray-700">Upload Profile Photo</label>
         <input type="file" (change)="onPhotoSelected($event)" accept="image/*" class="block w-full text-sm" />
         <img *ngIf="photoPreview" [src]="photoPreview" class="mt-2 w-24 h-24 rounded-full object-cover border" />
@@ -176,17 +186,24 @@
     <div *ngIf="step === 3 && isVolunteer">
       <form (ngSubmit)="submit()">
         <p class="mb-2 text-sm text-gray-700">Select your areas of interest:</p>
-        <label *ngFor="let job of jobRoles" class="block mb-2">
+        <div class="mb-4">
+        <label *ngFor="let job of jobRoles" class="flex items-center mb-2">
           <input
             type="checkbox"
             [value]="job.id"
             (change)="toggleJobRole(job.id_job_role)"
             [checked]="selectedJobRoleIds.includes(job.id_job_role)"
             [disabled]="!isAdmin && job.title === 'Class/Group leaders'"
+            class="mr-2"
           />
-          <span class="ml-2">{{ job.title }}</span>
-        </label>
 
+
+         <span [class.text-gray-700]="isAdmin" [class.text-gray-400]="!isAdmin && job.title === 'Class/Group leaders'">
+             {{ job.title }}
+            <span *ngIf="!isAdmin && job.title === 'Class/Group leaders'" class="text-xs italic">(Admin only)</span>
+         </span>
+        </label>
+        </div>
         <div class="flex justify-between mt-4">
           <button type="button" (click)="backStep()" class="text-sm text-gray-600 hover:underline">⬅ Back</button>
           <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded text-sm">

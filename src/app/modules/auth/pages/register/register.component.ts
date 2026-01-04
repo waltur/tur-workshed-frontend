@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { JobRoleService } from '../../services/job-role.service';
 import { Router } from '@angular/router';
+import { ImageUploadService } from '../../../../shared/services/image-upload.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -28,7 +29,6 @@ volunteerRoleId: number | null = null;
 ageRanges = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
 wantsToVolunteerLocked: boolean = false;
 loading:boolean=false;
-photoBase64: string | null = null;
 photoPreview: string | null = null;
 
   constructor(
@@ -36,22 +36,25 @@ photoPreview: string | null = null;
     private authService: AuthService,
     private router: Router,
     private roleService:RoleService,
-     private jobRoleService:JobRoleService
+    private jobRoleService:JobRoleService,
+    private imageUpload: ImageUploadService
   ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
       name: ['', Validators.required],
-      phone_number: ['', Validators.required],
+      //phone_number: ['', Validators.required],
+      phone_number: ['', [Validators.required, this.validatePhone]],
       email: ['', [Validators.required, Validators.email]],
-      emergency_contact: [''],
+      //emergency_contact: [''],
+      emergency_contact: ['', [this.validatePhone]],
       username: ['', Validators.required],
       password: ['', Validators.required],
 
       age_range: ['', Validators.required],
       photo_permission: [false, Validators.required],
       community_preference: ['', Validators.required],
-
+      photo_url: [null],
       acknowledged_rules: [false, Validators.requiredTrue],
       acknowledged_privacy: [false, Validators.requiredTrue],
       acknowledged_code_of_conduct: [false, Validators.requiredTrue],
@@ -81,7 +84,7 @@ photoPreview: string | null = null;
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
 }
-onPhotoSelected(event: Event): void {
+/*onPhotoSelected(event: Event): void {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
 
@@ -92,7 +95,20 @@ onPhotoSelected(event: Event): void {
   };
   reader.readAsDataURL(file);
 }
+*/
+validatePhone(control: any) {
+  const value = control.value;
+
+  // Permitir vacío (solo en emergency_contact)
+  if (!value) return null;
+
+  // Debe comenzar con + y tener solo números después
+  const phoneRegex = /^\+\d{8,15}$/;
+
+  return phoneRegex.test(value) ? null : { invalidPhone: true };
+}
 submit(): void {
+  console.log('FORM VALUE BEFORE SUBMIT', this.registerForm.value);
   if (this.registerForm.invalid) {
     this.registerForm.markAllAsTouched();
     return;
@@ -144,9 +160,7 @@ submit(): void {
     roles: this.selectedRoleIds,
     job_roles: this.selectedJobRoleIds
   };
-  if (this.registerForm.get('photo_permission')?.value === 'true' && this.photoBase64) {
-    formData.photoBase64 = this.photoBase64;
-  }
+
   this.loading = true; // ⏳ Inicia loading
 
   this.authService.register(formData).subscribe({
@@ -334,6 +348,20 @@ getInvalidFieldNames(): string[] {
     }
   });
   return invalidFields;
+}
+
+async onPhotoSelected(event: any) {
+  const file: File = event.target.files[0];
+  if (!file) return;
+
+  const url = await this.imageUpload.uploadImage(file, 'profiles');
+  console.log('SUPABASE URL:', url);
+  if (url) {
+    this.photoPreview = url;              // 👈 mostrar preview
+    this.registerForm.patchValue({
+      photo_url: url
+    });
+  }
 }
 
 }

@@ -1,0 +1,35 @@
+<div class="mb-4">
+  <label class="block text-sm font-medium text-gray-700 mb-1">
+    {{ label }}
+  </label>
+
+  <div class="flex gap-2">
+
+    <!-- SELECT DE PAÍSES -->
+    <select
+      [(ngModel)]="selectedCountry"
+      (change)="updateNumber()"
+      class="border rounded p-2 bg-white w-32"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option *ngFor="let c of countries" [ngValue]="c">
+        {{ c.iso2 }} {{ c.dialCode }}
+      </option>
+    </select>
+
+    <!-- INPUT DEL NÚMERO -->
+    <input
+      type="text"
+      [(ngModel)]="phoneNumber"
+      (input)="updateNumber()"
+      class="border rounded p-2 flex-1"
+      placeholder="Enter phone"
+      [ngModelOptions]="{ standalone: true }"
+    />
+  </div>
+
+  <!-- VALIDACIÓN -->
+  <p *ngIf="!isValid" class="text-red-500 text-xs mt-1">
+    Invalid phone number
+  </p>
+</div>

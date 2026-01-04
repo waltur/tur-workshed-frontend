@@ -16,6 +16,7 @@ export class NewsFeedComponent implements OnInit {
   previewImageUrl: string | null = null;
    previewUrl: string | null = null;
    previewUrls: string[] = [];
+   loading:boolean=false;
 
 
   constructor(private newsService: NewsService) {}
@@ -27,6 +28,7 @@ export class NewsFeedComponent implements OnInit {
   loadPosts() {
     this.newsService.getPosts().subscribe(data => {
       this.posts = data;
+      this.loading = false;
     });
   }
 onFilesSelected(event: Event): void {
@@ -64,15 +66,18 @@ removeImage(index: number): void {
   this.previewUrls.splice(index, 1);
 }
   createPost(): void {
+     this.loading = true;
     const { title, description } = this.newPost;
 
     if (title.trim().length < 5) {
       Swal.fire('Title too short', 'Minimum 5 characters required.', 'warning');
+       this.loading = false;
       return;
     }
 
     if (description.trim().length < 10) {
       Swal.fire('Description too short', 'Minimum 10 characters required.', 'warning');
+       this.loading = false;
       return;
     }
 
@@ -86,6 +91,7 @@ removeImage(index: number): void {
 
     this.newsService.createPost(formData).subscribe({
       next: () => {
+        this.loading = false;
         Swal.fire('Success', 'Post created successfully!', 'success');
         this.newPost = { title: '', description: '', image: '' };
         this.selectedImages = [];

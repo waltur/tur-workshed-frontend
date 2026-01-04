@@ -19,7 +19,7 @@
 
         <ng-container *ngFor="let image of post.images.slice(0, 4); let i = index">
           <div class="relative group" (click)="openGallery(post.images, i)">
-            <img [src]="mediaUrl + '/uploads/news/' + image"
+            <img [src]="image"
                  class="w-full h-48 object-cover rounded cursor-pointer hover:opacity-90 transition duration-300" />
 
             <!-- Overlay +N -->
@@ -117,7 +117,7 @@
     <div class="modal-content bg-black border-0">
       <div class="modal-body p-0 position-relative d-flex justify-content-center align-items-center" style="min-height: 80vh;">
         <!-- Imagen principal -->
-        <img [src]="mediaUrl + '/uploads/news/' + selectedGalleryImages[selectedImageIndex]"
+        <img [src]="selectedGalleryImages[selectedImageIndex]"
              class="img-fluid rounded shadow-lg" style="max-height: 80vh; object-fit: contain;" />
 
         <!-- Botón Cerrar -->

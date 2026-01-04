@@ -95,8 +95,8 @@ loadEventsByGroup(groupId: number): void {
                // attended: event.attended || false,
               },
               color: {
-                primary: '#EC4899',
-                secondary: '#FCE7F3'
+                primary: '#EA580C',
+                secondary: '#F97316'
               },
               allDay: false
             };

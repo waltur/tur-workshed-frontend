@@ -12,5 +12,24 @@
   white-space: normal;
   height: auto;
   overflow: visible;
-  font-size: 12px;
+  font-size: 14px;
 }
+/* global styles.css */
+.btn-primary {
+  @apply bg-orange-500 text-white font-semibold py-2 rounded-full
+         shadow-md hover:bg-orange-600 transition-all duration-300;
+}
+
+.btn-secondary {
+  @apply bg-orange-600 text-white font-semibold px-6 py-2 rounded-full
+         hover:bg-yellow-500 transition-all duration-300;
+}
+.nav-link {
+  @apply text-white hover:text-orange-600 transition;
+}
+
+.mobile-link {
+  @apply block text-white font-medium hover:text-orange-600;
+}
+
+

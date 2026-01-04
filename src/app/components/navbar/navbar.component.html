@@ -1,84 +1,87 @@
-<header class="bg-white shadow fixed top-0 w-full z-10">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+<header class="bg-white fixed top-0 w-full z-30 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-rigth">
 
-    <!-- Logo / Título -->
-    <h1 class="text-xl font-bold text-pink-600">The Workshed</h1>
-
-    <!-- Usuario y Logout (solo si logueado) -->
-    <div *ngIf="authService.isLoggedIn()" class="hidden md:flex items-center gap-3">
-      <span *ngIf="userInfo">Welcome, {{ userInfo.username }}</span>
-      <button (click)="logout()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-sm">
-        Logout
-      </button>
+    <!-- Logo -->
+    <div class="flex items-center gap-2">
+      <img
+        src="assets/images/logo.png"
+        alt="Workshed logo"
+        class="h-14 sm:h-16 md:h-18 w-auto"
+      /><br>
+      <span class="font-bold text-orange-600 text-lg lg:block">
+        The Workshed Inner West
+      </span>
+     <!-- <span >
+        Building| Community| Connection|
+      </span>-->
     </div>
 
-    <!-- Botón hamburguesa -->
-    <button class="md:hidden text-gray-600" (click)="toggleMenu()">
-      <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 6h16M4 12h16M4 18h16" />
+    <!-- Desktop menu -->
+    <nav class="hidden md:flex items-center gap-2 text-lg font-medium">
+      <a routerLink="/" class=" btn-secondary" >Home</a>
+      <a routerLink="/news" class=" btn-secondary">Community</a>
+      <a routerLink="/groups/listGroup" class=" btn-secondary">Activities</a>
+      <!--<a routerLink="/groups/calendar" class="btn-secondary">Calendar</a>-->
+      <a *ngIf="isAdmin()" routerLink="/admin"
+         routerLinkActive="text-pink-600 font-semibold underline"
+         class="text-gray-600 hover:text-orange-600 btn-secondary">Admin</a>
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="btn-secondary">
+        My Portal
+      </a>
+
+      <a *ngIf="!authService.isLoggedIn()"
+         routerLink="/login"
+         class="btn-primary text-lg ">
+        Login
+      </a>
+
+      <button *ngIf="authService.isLoggedIn()"
+              (click)="logout()"
+              class="btn-secondary text-lg">
+        Logout
+      </button>
+    </nav>
+
+    <!-- Hamburger -->
+    <button class="md:hidden text-gray-700" (click)="toggleMenu()">
+      <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
   </div>
 
-  <!-- Menú navegación escritorio -->
-  <nav class="hidden md:flex justify-center space-x-4 pb-3 text-sm border-t border-gray-100">
-    <a routerLink="/" routerLinkActive="text-pink-600 font-semibold underline"
-       [routerLinkActiveOptions]="{ exact: true }" class="text-gray-600 hover:text-pink-600">Home</a>
+  <!-- Mobile menu -->
+  <div *ngIf="isMenuOpen" class="md:hidden bg-white border-t shadow px-6 py-4 space-y-4 text-sm">
 
-    <!--<a href="#who-we-are" class="text-gray-600 hover:text-pink-600">News</a>-->
-    <a routerLink="/news/" class="text-gray-600 hover:text-pink-600">News</a>
-    <!--<a href="#what-we-offer" class="text-gray-600 hover:text-pink-600">What We Offer</a>-->
-    <a routerLink="/groups/listGroup" class="text-gray-600 hover:text-pink-600">What We Offer</a>
+    <a routerLink="/" (click)="closeMenu()" class="mobile-link btn-secondary">Home</a>
+    <a routerLink="/news" (click)="closeMenu()" class="mobile-link btn-secondary">Community News</a>
+    <a routerLink="/groups/listGroup" (click)="closeMenu()" class="mobile-link btn-secondary">What We Do</a>
+   <!-- <a routerLink="/groups/calendar" (click)="closeMenu()" class="mobile-link btn-secondary">Events</a>-->
 
-    <a href="#get-involved" class="text-gray-600 hover:text-pink-600">Get Involved</a>
-    <a routerLink="/groups/calendar" class="text-gray-600 hover:text-pink-600">Calendar</a>
-    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="text-gray-600 hover:text-pink-600">Dashboard</a>
+    <a *ngIf="authService.isLoggedIn()"
+       routerLink="/dashboard"
+       (click)="closeMenu()"
+       class="mobile-link btn-secondary">
+      My Space
+    </a>
 
-    <a *ngIf="!authService.isLoggedIn()" routerLink="/login"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="text-gray-600 hover:text-pink-600">Login</a>
+    <a *ngIf="!authService.isLoggedIn()"
+       routerLink="/login"
+       (click)="closeMenu()"
+       class="btn-primary block text-center">
+      Login
+    </a>
 
-    <a *ngIf="isAdmin()" routerLink="/admin"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="text-gray-600 hover:text-pink-600">Admin</a>
-
-    <a *ngIf="isAdmin() || isVolunteer()" routerLink="/volunteers"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="text-gray-600 hover:text-pink-600">Volunteers</a>  </nav>
-
-  <!-- Menú móvil -->
-  <div *ngIf="isMenuOpen" class="md:hidden px-4 pb-4 space-y-2 text-sm bg-white shadow text-right border-t">
-    <a routerLink="/" routerLinkActive="text-pink-600 font-semibold underline"
-       [routerLinkActiveOptions]="{ exact: true }" class="block text-gray-600 hover:text-pink-600">Home</a>
-
-    <a href="#who-we-are" class="block text-gray-600 hover:text-pink-600">Who We Are</a>
-    <a href="#what-we-offer" class="block text-gray-600 hover:text-pink-600">What We Offer</a>
-    <a href="#get-involved" class="block text-gray-600 hover:text-pink-600">Get Involved</a>
-    <a routerLink="/groups/calendar" class="text-gray-600 hover:text-pink-600">Calendar</a>
-    <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="block text-gray-600 hover:text-pink-600">Dashboard</a>
-
-    <a *ngIf="!authService.isLoggedIn()" routerLink="/login"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="block text-gray-600 hover:text-pink-600">Login</a>
-
-    <a *ngIf="isAdmin()" routerLink="/admin"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="block text-gray-600 hover:text-pink-600">Admin</a>
-
-    <a *ngIf="isAdmin() || isVolunteer()" routerLink="/volunteers"
-       routerLinkActive="text-pink-600 font-semibold underline"
-       class="block text-gray-600 hover:text-pink-600">Volunteers</a>
-    <div *ngIf="authService.isLoggedIn()" class="mt-2 text-right">
-      <span *ngIf="userInfo">Welcome, {{ userInfo.username }}</span>
-      <button (click)="logout()" class="mt-1 bg-pink-600 text-white px-3 py-1 rounded text-sm">
-        Logout
-      </button>
-    </div>
-
+    <button *ngIf="authService.isLoggedIn()"
+            (click)="logout(); closeMenu()"
+            class="btn-secondary w-full">
+      Logout
+    </button>
   </div>
 </header>
+
+
+

@@ -1,6 +1,6 @@
-<div class="max-w-6xl mx-auto mt-8 p-6 bg-white shadow rounded-lg">
+<div class="max-w-6xl mx-auto mt-8 bg-white shadow rounded-lg">
   <div *ngIf="loadingEvents" class="absolute inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-50">
-    <span class="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></span>
+    <span class="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></span>
     <p class="mt-4 text-gray-600 text-lg">Loading events...</p>
   </div>
   <div class="flex justify-between items-center mb-4">
@@ -19,24 +19,24 @@
         </option>
       </select>
     </div>
-    <h2 class="text-2xl font-bold text-pink-600">Community Event Calendar</h2>
+    <h2 class="text-2xl font-bold text-orange-600">Community Event Calendar</h2>
     <div class="flex gap-2">
       <button
-        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
         (click)="view = CalendarView.Month"
         [class.opacity-75]="view !== CalendarView.Month"
       >
         Month
       </button>
       <button
-        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
         (click)="view = CalendarView.Week"
         [class.opacity-75]="view !== CalendarView.Week"
       >
         Week
       </button>
       <button
-        class="bg-pink-500 text-white px-3 py-1 rounded text-sm hover:bg-pink-600"
+        class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
         (click)="view = CalendarView.Day"
         [class.opacity-75]="view !== CalendarView.Day"
       >
@@ -50,11 +50,11 @@
     </div>
   </div>
   <div *ngIf="view === CalendarView.Month" class="flex justify-between items-center mb-4 px-4">
-    <button (click)="prevMonth()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">←</button>
+    <button (click)="prevMonth()" class="bg-orange-200 px-3 py-1 rounded hover:bg-orange-300">←</button>
     <div class="text-lg font-semibold">
       {{ viewDate | date: 'MMMM yyyy' }}
     </div>
-    <button (click)="nextMonth()" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">→</button>
+    <button (click)="nextMonth()" class="bg-orange-200 px-3 py-1 rounded hover:bg-orange-300">→</button>
   </div>
   <div class="relative">
   <div class="calendar-container">
@@ -289,10 +289,10 @@
 <ng-template #eventModal  let-modal>
   <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
     <div *ngIf="loading" class="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center">
-      <div class="w-10 h-10 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+      <div class="w-10 h-10 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
       <p class="text-sm text-gray-600 mt-3">Creating Event...</p>
     </div>
-    <h2 class="text-xl font-bold text-pink-600 mb-4">Create New Event</h2>
+    <h2 class="text-xl font-bold text-orange-600 mb-4">Create New Event</h2>
 
     <div class="space-y-4">
       <div class="mb-4 flex items-center gap-4">
@@ -323,21 +323,21 @@
         <input type="number" min="1" [(ngModel)]="repeatCount" class="form-control" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700">Title</label>
+        <label class="block text-sm font-medium text-orange-700">Title</label>
         <input type="text" [(ngModel)]="newEvent.title" class="w-full border rounded px-3 py-2 mt-1" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700">Location</label>
+        <label class="block text-sm font-medium text-orange-700">Location</label>
         <input [(ngModel)]="newEvent.location" class="w-full border rounded px-3 py-2 mt-1"/>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <label class="block text-sm font-medium text-orange-700">Description</label>
         <textarea [(ngModel)]="newEvent.description" class="w-full border rounded px-3 py-2 mt-1"></textarea>
       </div>
 
-      <div class="mt-6 bg-gray-50 border rounded p-4">
-        <h3 class="text-lg font-semibold text-pink-600 mb-3">Event Tasks</h3>
+      <div class="mt-6 bg-orange-50 border rounded p-4">
+        <h3 class="text-lg font-semibold text-orange-600 mb-3">Event Tasks</h3>
 
         <div *ngFor="let task of eventTasks; let i = index" class="mb-4 border rounded p-3 shadow-sm bg-white">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -353,27 +353,27 @@
         </div>
 
         <div class="text-right">
-          <button type="button" (click)="addTask()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded text-sm">
+          <button type="button" (click)="addTask()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-1 rounded text-sm">
             + Add Task
           </button>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">Start</label>
+          <label class="block text-sm font-medium text-orange-700">Start</label>
           <input type="datetime-local" [(ngModel)]="newEvent.start" class="w-full border rounded px-3 py-2 mt-1" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">End</label>
+          <label class="block text-sm font-medium text-orange-700">End</label>
           <input type="datetime-local" [(ngModel)]="newEvent.end" class="w-full border rounded px-3 py-2 mt-1" />
         </div>
       </div>
     </div>
 
     <div class="flex justify-end gap-3 mt-6">
-      <button class="bg-gray-200 px-4 py-2 rounded" (click)="modal.dismiss()">Cancel</button>
+      <button class="bg-orange-200 px-4 py-2 rounded" (click)="modal.dismiss()">Cancel</button>
       <button
-        class="bg-pink-600 text-white px-4 py-2 rounded"
+        class="bg-orange-600 text-white px-4 py-2 rounded"
         (click)="isEditing ? editEvent(editingEventId!) : createEvent()"
       >
         {{ isEditing ? 'Update' : 'Create' }}

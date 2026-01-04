@@ -36,6 +36,11 @@ isAdmin(): boolean {
 isVolunteer(): boolean {
   return !!this.userInfo?.roles?.includes('Volunteer');
 }
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
+
+
 }
 
 
