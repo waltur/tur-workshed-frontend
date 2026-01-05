@@ -1,51 +1,192 @@
 <main>
   <!-- Hero section with background image -->
-  <section
-    class="relative flex items-center justify-center min-h-[80vh] px-6 bg-gradient-to-br from-orange-400 via-amber-400 to-pink-500"
-  >
-    <!-- Overlay suave -->
-    <div class="absolute inset-0 bg-white/70 backdrop-blur-sm"></div>
+  <section class="relative overflow-hidden min-h-[70vh] flex items-center justify-center">
 
-    <!-- Contenido -->
-    <div class="relative  max-w-4xl text-center">
-      <!-- Logo -->
-     <!-- <img
-        src="assets/images/logo.png"
-        alt="The Workshed Inner West"
-        class="mx-auto h-24 mb-6 drop-shadow-lg"
-      />-->
+    <!-- Animated background images -->
+    <div class="absolute inset-0 z-0">
+      <img src="assets/images/foto1.jpg" class="floating-img img-1" />
+      <img src="assets/images/foto2.jpg" class="floating-img img-2" />
+      <img src="assets/images/foto3.jpg" class="floating-img img-3" />
+      <img src="assets/images/foto4.jpg" class="floating-img img-4" />
+    </div>
 
-      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
-        A welcoming community space<br />
-        <span class="text-orange-600">by women, for women</span>
-      </h1>
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-orange-900/70 z-10"></div>
 
-      <p class="mt-5 text-lg md:text-xl text-gray-700 max-w-2xl mx-auto">
-        Creativity, connection and wellbeing for women aged 18+ in Brisbane’s Inner West.
+    <!-- Content -->
+    <div class="relative z-20 text-center max-w-3xl px-4">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4">
+        A Community Space by Women, for Women — Ages 18+
+      </h2>
+      <p class="text-lg text-orange-100">
+        Inclusive, creative and purpose-driven connection in Brisbane’s inner west.
       </p>
+    </div>
 
-      <!-- Botones -->
-      <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-        <a
-          routerLink="/groups/listGroup"
-          class="px-6 py-3 rounded-full bg-orange-600 text-white font-semibold shadow hover:bg-orange-700 transition"
-        >
-          Explore our programs
-        </a>
+  </section>
 
-        <a
-          href="#get-involved"
-          class="px-6 py-3 rounded-full border-2 border-orange-600 text-orange-700 font-semibold hover:bg-orange-50 transition"
-        >
-          Get involved
-        </a>
+  <!-- Life at The Workshed -->
+  <section class="bg-orange-50 py-16 px-4">
+    <div class="max-w-6xl mx-auto text-center mb-10">
+      <h3 class="text-3xl font-bold text-orange-700 mb-2">
+        Life at The Workshed
+      </h3>
+
+      <p class="text-gray-600">
+        Real moments. Real connections. Real community.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto">
+      <div class="overflow-hidden rounded-xl group">
+        <img src="assets/images/foto5.jpg"
+             class="w-full h-56 object-cover transform group-hover:scale-105 transition duration-500"
+             alt="Workshed moment">
       </div>
+
+      <div class="overflow-hidden rounded-xl group">
+        <img src="assets/images/foto12.jpg"
+             class="w-full h-56 object-cover transform group-hover:scale-105 transition duration-500"
+             alt="Workshed moment">
+      </div>
+
+      <div class="overflow-hidden rounded-xl group">
+        <img src="assets/images/foto2.jpg"
+             class="w-full h-56 object-cover transform group-hover:scale-105 transition duration-500"
+             alt="Workshed moment">
+      </div>
+
+      <div class="overflow-hidden rounded-xl group">
+        <img src="assets/images/foto3.jpg"
+             class="w-full h-56 object-cover transform group-hover:scale-105 transition duration-500"
+             alt="Workshed moment">
+      </div>
+    </div>
+  </section>
+  <!-- What Happens Here -->
+  <section class="py-20 px-4 bg-white">
+    <div class="max-w-6xl mx-auto text-center mb-12">
+      <h3 class="text-3xl font-bold text-orange-500 mb-2">
+        What Happens Here
+      </h3>
+      <p class="text-gray-600">
+        A place to create, connect and belong.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+      <!-- Create -->
+      <div class="bg-orange-50 rounded-2xl p-8 text-center shadow-sm
+                hover:shadow-lg transition">
+        <div class="text-4xl mb-4">🎨</div>
+        <h4 class="font-semibold text-lg text-orange-500 mb-2">
+          Create
+        </h4>
+        <p class="text-gray-600 text-sm">
+          Hands-on workshops, creative skills, making and learning together in a
+          supportive environment.
+        </p>
+      </div>
+
+      <!-- Connect -->
+      <div class="bg-orange-50 rounded-2xl p-8 text-center shadow-sm
+                hover:shadow-lg transition">
+        <div class="text-4xl mb-4">🤝</div>
+        <h4 class="font-semibold text-lg text-orange-500 mb-2">
+          Connect
+        </h4>
+        <p class="text-gray-600 text-sm">
+          Meet like-minded women, build friendships, share stories and feel part
+          of something meaningful.
+        </p>
+      </div>
+
+      <!-- Belong -->
+      <div class="bg-orange-50 rounded-2xl p-8 text-center shadow-sm
+                hover:shadow-lg transition">
+        <div class="text-4xl mb-4">🌱</div>
+        <h4 class="font-semibold text-lg text-orange-500 mb-2">
+          Belong
+        </h4>
+        <p class="text-gray-600 text-sm">
+          A safe, inclusive community where every woman is welcomed, valued and
+          supported.
+        </p>
+      </div>
+
+    </div>
+  </section>
+  <!-- What's On -->
+  <section class="py-20 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto text-center mb-12">
+      <h3 class="text-3xl font-bold text-orange-500 mb-2">
+        What’s On at The Workshed
+      </h3>
+      <p class="text-gray-600">
+        Workshops, groups and gatherings designed to connect and empower women.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+      <!-- Workshops -->
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
+        <img src="assets/images/foto1.jpg" alt="Workshops" class="h-48 w-full object-cover">
+        <div class="p-6">
+          <h4 class="font-semibold text-lg text-orange-700 mb-2">
+            Workshops & Skills
+          </h4>
+          <p class="text-sm text-gray-600 mb-4">
+            Creative, practical and wellbeing-focused workshops led by women, for women.
+          </p>
+          <a routerLink="/groups/listGroup"
+             class="text-orange-500 font-semibold text-sm hover:underline">
+            Explore workshops →
+          </a>
+        </div>
+      </div>
+
+      <!-- Groups -->
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
+        <img src="assets/images/foto10.jpg" alt="Groups" class="h-48 w-full object-cover">
+        <div class="p-6">
+          <h4 class="font-semibold text-lg text-orange-700 mb-2">
+            Groups & Clubs
+          </h4>
+          <p class="text-sm text-gray-600 mb-4">
+            Ongoing groups where connections grow over time.
+          </p>
+          <a routerLink="/groups/listGroup"
+             class="text-orange-600 font-semibold text-sm hover:underline">
+            View groups →
+          </a>
+        </div>
+      </div>
+
+      <!-- Events -->
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
+        <img src="assets/images/foto16.jpg" alt="Events" class="h-48 w-full object-cover">
+        <div class="p-6">
+          <h4 class="font-semibold text-lg text-orange-500 mb-2">
+            Events & Calendar
+          </h4>
+          <p class="text-sm text-gray-600 mb-4">
+            One-off events, community gatherings and special activities.
+          </p>
+          <a routerLink="/groups/calendar"
+             class="text-orange-500 font-semibold text-sm hover:underline">
+            See calendar →
+          </a>
+        </div>
+      </div>
+
     </div>
   </section>
 
 
   <!-- Who We Are -->
-  <section id="who-we-are" class="max-w-4xl mx-auto px-4 py-16">
+  <section id="who-we-are" class="animate-section max-w-4xl mx-auto px-4 py-16">
     <h3 class="text-2xl font-bold text-orange-500 mb-4">🧩 Who We Are</h3>
     <p class="text-gray-700 leading-relaxed">
       The Workshed Inner West Inc is a non-profit community initiative based in St Lucia, Brisbane.
@@ -54,9 +195,28 @@
       and support mental, physical, and emotional health.
     </p>
   </section>
+  <section class="bg-white py-14 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4">
+
+      <h3 class="text-2xl font-bold text-orange-500 mb-8 text-center">
+        Life at The Shed
+      </h3>
+
+      <div class="flex gap-6 animate-horizontal-scroll">
+        <img src="assets/images/foto15.jpg" class="life-img" />
+        <img src="assets/images/foto7.jpg" class="life-img" />
+        <img src="assets/images/foto6.jpg" class="life-img" />
+        <img src="assets/images/foto8.jpg" class="life-img" />
+        <img src="assets/images/foto14.jpg" class="life-img" />
+      </div>
+
+    </div>
+  </section>
+
+
 
   <!-- What We Offer -->
-  <section id="what-we-offer" class="bg-gray-50 py-16 px-4">
+  <section id="what-we-offer" class="animate-section max-w-4xl mx-auto px-4 py-16">
     <div class="max-w-6xl mx-auto">
       <h3 class="text-2xl font-bold text-orange-500 mb-6">🌻 What We Offer</h3>
 
@@ -129,7 +289,7 @@
   </section>
 
   <!-- Get Involved -->
-  <section id="get-involved" class="max-w-4xl mx-auto px-4 py-16">
+  <section id="get-involved" class="animate-section max-w-4xl mx-auto px-4 py-16">
     <h3 class="text-2xl font-bold text-orange-500 mb-4">🔗 Get Involved!</h3>
     <p class="text-gray-700 mb-4">
       Whether you want to lead a workshop, run a support group, help with events, or share your story — we’d love to hear from you!

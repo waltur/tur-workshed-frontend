@@ -1,0 +1,112 @@
+.floating-img {
+  position: absolute;
+  width: 280px;
+  border-radius: 1rem;
+  opacity: 0.9;
+  animation: float 20s ease-in-out infinite;
+}
+
+/* Individual positions */
+.img-1 {
+  top: 10%;
+  left: 5%;
+  animation-duration: 22s;
+}
+
+.img-2 {
+  top: 60%;
+  left: 10%;
+  animation-duration: 26s;
+}
+
+.img-3 {
+  top: 20%;
+  right: 5%;
+  animation-duration: 24s;
+}
+
+.img-4 {
+  bottom: 10%;
+  right: 15%;
+  animation-duration: 28s;
+}
+
+/* Floating animation */
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-30px) translateX(15px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .floating-img {
+    width: 180px;
+    opacity: 0.7;
+  }
+}
+.floating-img {
+  filter: blur(0.5px);
+}
+.animate-section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s ease-out;
+}
+
+.animate-section.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.gallery-img {
+  width: 280px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transition: transform 0.4s ease;
+}
+
+.gallery-img:hover {
+  transform: scale(1.05);
+}
+
+/* Ocultar scrollbar (opcional, recomendado) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.life-img {
+  width: 320px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+/* Movimiento suave automático */
+.animate-horizontal-scroll {
+  display: flex;
+  animation: scroll-left 40s linear infinite;
+}
+
+@keyframes scroll-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
