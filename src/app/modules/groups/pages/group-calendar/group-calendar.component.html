@@ -1,16 +1,20 @@
 <div class="max-w-6xl mx-auto mt-8 bg-white shadow rounded-lg">
-  <div *ngIf="loadingEvents" class="absolute inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-50">
+  <!-- LOADING -->
+  <div *ngIf="loadingEvents"
+       class="absolute inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-50">
     <span class="animate-spin rounded-full h-12 w-12 border-4 border-orange-600 border-t-transparent"></span>
     <p class="mt-4 text-gray-600 text-lg">Loading events...</p>
   </div>
-  <div class="flex justify-between items-center mb-4">
-    <div class="mb-4 flex items-center gap-4">
-      <label class="text-sm font-medium text-gray-700">Filter by group:</label>
-      <select [(ngModel)]="selectedGroupId"
-              (change)="onGroupChange()"
-              class="w-full border rounded px-3 py-2 mt-1">
-        <option [value]="null" disabled>Select a group</option>
 
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-4">
+    <div class="flex items-center gap-4">
+      <label class="text-sm font-medium text-gray-700">Filter by group:</label>
+      <select
+        [(ngModel)]="selectedGroupId"
+        (change)="onGroupChange()"
+        class="border rounded px-3 py-2">
+        <option [value]="null" disabled>Select a group</option>
         <option
           *ngFor="let group of groups"
           [value]="group.id_group"
@@ -19,186 +23,134 @@
         </option>
       </select>
     </div>
-    <h2 class="text-2xl font-bold text-orange-600">Community Event Calendar</h2>
+
+    <h2 class="text-2xl font-bold text-orange-600">
+      Community Event Calendar
+    </h2>
+
     <div class="flex gap-2">
-      <button
-        class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
-        (click)="view = CalendarView.Month"
-        [class.opacity-75]="view !== CalendarView.Month"
-      >
+      <button class="bg-orange-600 text-white px-3 py-1 rounded text-sm"
+              (click)="view = CalendarView.Month">
         Month
       </button>
-      <button
-        class="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
-        (click)="view = CalendarView.Week"
-        [class.opacity-75]="view !== CalendarView.Week"
-      >
+      <button class="bg-orange-600 text-white px-3 py-1 rounded text-sm"
+              (click)="view = CalendarView.Week">
         Week
       </button>
-      <button
-        class="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
-        (click)="view = CalendarView.Day"
-        [class.opacity-75]="view !== CalendarView.Day"
-      >
+      <button class="bg-orange-600 text-white px-3 py-1 rounded text-sm"
+              (click)="view = CalendarView.Day">
         Day
       </button>
-      <button (click)="today()" class="bg-gray-200 text-sm px-2 py-1 rounded">
-        Today
-      </button>
-      <button (click)="prev()" class="bg-gray-200 text-sm px-2 py-1 rounded">«</button>
-      <button (click)="next()" class="bg-gray-200 text-sm px-2 py-1 rounded">»</button>
+      <button (click)="today()" class="bg-gray-200 px-2 py-1 rounded">Today</button>
+      <button (click)="prev()" class="bg-gray-200 px-2 py-1 rounded">«</button>
+      <button (click)="next()" class="bg-gray-200 px-2 py-1 rounded">»</button>
     </div>
   </div>
-  <div *ngIf="view === CalendarView.Month" class="flex justify-between items-center mb-4 px-4">
-    <button (click)="prevMonth()" class="bg-orange-200 px-3 py-1 rounded hover:bg-orange-300">←</button>
+
+  <!-- MONTH TITLE -->
+  <div *ngIf="view === CalendarView.Month"
+       class="flex justify-between items-center mb-4 px-4">
+    <button (click)="prevMonth()" class="bg-orange-200 px-3 py-1 rounded">←</button>
     <div class="text-lg font-semibold">
-      {{ viewDate | date: 'MMMM yyyy' }}
+      {{ viewDate | date:'MMMM yyyy' }}
     </div>
-    <button (click)="nextMonth()" class="bg-orange-200 px-3 py-1 rounded hover:bg-orange-300">→</button>
+    <button (click)="nextMonth()" class="bg-orange-200 px-3 py-1 rounded">→</button>
   </div>
-  <div class="relative">
+
+  <!-- CALENDAR -->
   <div class="calendar-container">
+
+    <!-- MONTH VIEW -->
     <mwl-calendar-month-view
       *ngIf="view === CalendarView.Month"
       [viewDate]="viewDate"
       [events]="events"
-      [activeDayIsOpen]="activeDayIsOpen"
+      [refresh]="refresh"
       (dayClicked)="dayClicked($event.day)"
       (eventClicked)="handleEvent($event.event)"
-      [refresh]="refresh"
-      [cellTemplate]="customMonthCellTemplate"
-    >
-      <ng-template #customMonthCellTemplate let-day="day">
-        <div class="cal-cell-top">{{ day.date | date: 'd' }}</div>
-        <div *ngFor="let event of day.events" class="custom-event-box">
-          <div class="event-title">
-            📌 {{ event.title }}
-          </div>
-          <div *ngIf="isLogged" class="event-group">
-            📍 {{ event.meta?.location }}
-          </div>
-          <div class="event-group">
-            👥 {{ event.meta?.group }}
-          </div>
-          <div class="event-roles" *ngIf="event.meta?.registration_roles?.length">
-            🏷️
-            <span class="role-badge">{{ event.meta.registration_roles.join(', ') }}</span>
-          </div>
-          <div *ngIf="activeDayIsOpen && canCreateEvent()" class="mt-2 text-start">
-  <span class="text-danger" style="cursor: pointer;" title="Delete Event " (click)="deleteEvent(event.meta.id_event)">
-    🗑️ Delete
-  </span>
-            <span class="text-danger" style="cursor: pointer;" title="Edit Event" (click)="openNewEventModal(event)">
-  /✏️ Edit
-</span>
-          </div>
-        </div>
-      </ng-template>
+      [cellTemplate]="monthCellTemplate">
     </mwl-calendar-month-view>
-    <!-- Botón para abrir modal cuando el día está activo -->
 
-    <div *ngIf="activeDayIsOpen && canCreateEvent() && coordinatorGroupIds.length > 0" class="mt-2 text-end">
-      <button class="btn btn-outline-primary" (click)="openNewEventModal()">
-        + Add Event on {{ selectedDate | date:'fullDate' }}
-      </button>
-    </div>
-
+    <!-- WEEK VIEW -->
     <mwl-calendar-week-view
       *ngIf="view === CalendarView.Week"
       [viewDate]="viewDate"
       [events]="events"
       [refresh]="refresh"
-      (eventClicked)="handleEvent($event.event)"
-    >
+      (eventClicked)="handleEvent($event.event)">
     </mwl-calendar-week-view>
 
+    <!-- DAY VIEW -->
     <mwl-calendar-day-view
       *ngIf="view === CalendarView.Day"
       [viewDate]="viewDate"
       [events]="events"
       [refresh]="refresh"
-      (eventClicked)="handleEvent($event.event)"
-    >
+      (eventClicked)="handleEvent($event.event)">
     </mwl-calendar-day-view>
-  </div>
-  </div>
-  <div *ngIf="activeDayIsOpen" class="mt-6 border-t pt-4">
-    <h3 class="text-lg font-semibold text-pink-600 mb-2">
-      Events on {{ viewDate | date: 'fullDate' }}
-    </h3>
-    <ul>
-      <li *ngFor="let e of getEventsForSelectedDay()">
-        <div
-          class="flex justify-between items-center p-3 border rounded-lg my-2 shadow-sm"
-        >
-          <div>
-            <div class="space-y-1">
-              <div>
-                <span class="text-sm font-semibold text-gray-800">Title: </span>
-                <span class="text-base text-gray-600">{{ e.title }}</span>
-              </div>
-              <div>
-                <span class="text-sm font-semibold text-gray-800">Coordinator: </span>
-                <span class="text-base text-gray-600">{{ e.meta?.coordinator }}</span>
-              </div>
-              <div *ngIf="isLogged">
-                <span class="text-sm font-semibold text-gray-800">Location: </span>
-                <span class="text-base text-gray-600">{{ e.meta?.location }}</span>
-              </div>
-              <div>
-                <span class="text-sm font-semibold text-gray-800">Description: </span>
-                <span class="text-base text-gray-600">{{ e.meta?.description }}</span>
-              </div>
-            </div>
-            <span *ngIf="e.meta?.registration_roles?.length" class="ml-2 text-green-600 text-xs font-semibold">
-  • Registered as: {{ e.meta.registration_roles.join(', ') }}
-</span>
-          </div>
-          <!-- Botón Attendee -->
-          <ng-container *ngIf="isMember()">
-            <!-- ✅ No registrado aún -->
-            <button
-              *ngIf="!e.meta?.registration_roles?.includes('Attendant')"
-              (click)="registerAsAttendee(e)"
-              class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition duration-200"
-            >
-              I'm attending
-            </button>
 
-            <!-- ✅ Registrado pero aún no confirmado por el coordinador (attended = false o null) -->
-            <div
-              *ngIf="e.meta?.registration_roles?.includes('Attendant') && !e.meta?.attended"
-              class="text-yellow-600 font-medium text-sm mt-1"
-            >
-              Awaiting confirmation...
-            </div>
-
-            <!-- ✅ Confirmado por el coordinador (attended = true) pero aún no ha firmado -->
-            <button
-              *ngIf="e.meta?.registration_roles?.includes('Attendant') && e.meta?.attended && !e.meta?.signature"
-              (click)="openSignatureModal(e)"
-              class="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700 mt-1"
-            >
-              Confirm Attendance (Signature)
-            </button>
-
-            <!-- ✅ Ya firmó -->
-            <div *ngIf="e.meta?.signature" class="text-green-600 font-medium text-sm mt-1">
-              Attendance Confirmed
-            </div>
-
-            <!-- 🔒 Modal de firma -->
-            <ng-template #signatureModal let-modal>
-              <app-signature-capture
-                (signatureCompleted)="onSignatureCompleted($event, selectedEvent, modal)">
-              </app-signature-capture>
-            </ng-template>
-          </ng-container>
-        </div>
-      </li>
-    </ul>
   </div>
 </div>
+
+<!-- MONTH CELL TEMPLATE WITH POPOVER -->
+<ng-template #monthCellTemplate let-day="day">
+  <div
+    class="cal-cell-top cursor-pointer p-1"
+    ngbPopover
+    [ngbPopover]="dayPopover"
+    [popoverTitle]="day.date | date:'fullDate'"
+    [autoClose]="'outside'"
+    placement="right"
+    (click)="dayClicked(day)">
+
+    <!-- DAY NUMBER -->
+    <div class="text-sm font-semibold text-right">
+      {{ day.date | date:'d' }}
+    </div>
+
+    <!-- EVENT INDICATORS -->
+    <div class="mt-1 space-y-1">
+      <div
+        *ngFor="let event of day.events | slice:0:3"
+        class="truncate text-xs px-1 py-0.5 rounded bg-orange-600 text-white">
+        {{ $any(event).title }}
+      </div>
+
+      <!-- MORE EVENTS -->
+      <div *ngIf="day.events.length > 3"
+           class="text-xs text-gray-500">
+        +{{ day.events.length - 3 }} more
+      </div>
+    </div>
+  </div>
+
+  <!-- POPOVER CONTENT -->
+  <ng-template #dayPopover>
+    <div *ngIf="day.events.length; else noEvents" class="space-y-2">
+      <div *ngFor="let event of day.events"
+           class="p-2 border rounded hover:bg-gray-50 cursor-pointer"
+           (click)="handleEvent(event)">
+        <div class="font-semibold text-sm">📌 {{ $any(event).title }}</div>
+        <div class="text-xs text-gray-600">👥 {{ event.meta?.group }}</div>
+        <div *ngIf="isLogged" class="text-xs text-gray-500">
+          📍 {{ event.meta?.location }}
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noEvents>
+      <div class="text-sm text-gray-500">No events</div>
+    </ng-template>
+
+    <button
+      *ngIf="canCreateEvent() && coordinatorGroupIds.length > 0"
+      class="mt-3 w-full bg-orange-600 text-white py-1 rounded text-sm"
+      (click)="openNewEventModal(); $event.stopPropagation()">
+      + Add Event
+    </button>
+  </ng-template>
+</ng-template>
+
 <ng-template #eventDetails let-modal>
   <div class="modal-header">
     <h4 class="modal-title">{{ selectedEvent?.title }} </h4>

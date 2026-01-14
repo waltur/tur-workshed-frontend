@@ -46,7 +46,7 @@ export class GroupCalendarComponent {
 groups: any[] = [];
 eventTasks: EventTask[] = [];
 loading = false;
-events: CalendarEvent[] = [];
+//events: CalendarEvent[] = [];
 isLogged = false;
 coordinatorGroupIds: number[] = [];
 isAdmin: boolean = true;
@@ -61,6 +61,9 @@ showAttendees = false;
 attendeeSearch = '';
 coordinator:any;
 loadingEvents = false;
+selectedDay: Date | null = null;
+selectedDayEvents: CalendarEvent[] = [];
+events: CalendarEvent<any>[] = [];
 
 
 constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
@@ -258,7 +261,7 @@ getRegistrationLabel(type: string): string {
       return 'participant';
   }
 }
-dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
+/*dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
   if (this.isEditing) return;
   this.selectedDate = day.date;
   this.newEvent.start = day.date.toISOString().split('T')[0];
@@ -280,6 +283,20 @@ dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
     this.viewDate = day.date;
   }
 }
+*/
+dayClicked(day: { date: Date; events: CalendarEvent[] }): void {
+  if (this.isEditing) return;
+
+  this.selectedDay = day.date;
+  this.selectedDayEvents = day.events;
+
+  // preparar datos para crear evento rápido
+  this.selectedDate = day.date;
+  const dateStr = day.date.toISOString().split('T')[0];
+  this.newEvent.start = dateStr;
+  this.newEvent.end = dateStr;
+}
+
 openNewEventModal(event?: any): void {
   console.log("openNewEventModal");
   this.isEditing = !!event;
