@@ -24,7 +24,7 @@
       <!--<a routerLink="/groups/calendar" class="btn-secondary">Calendar</a>-->
       <a *ngIf="isAdmin()" routerLink="/admin"
          routerLinkActive="text-pink-600 font-semibold underline"
-         class="text-gray-600 hover:text-orange-600 btn-secondary">Admin</a>
+         class="text-gray-600 hover:text-white-600 btn-secondary">Admin</a>
 
       <a *ngIf="authService.isLoggedIn()" routerLink="/dashboard" class="btn-secondary">
         My Portal
@@ -32,7 +32,7 @@
 
       <a *ngIf="!authService.isLoggedIn()"
          routerLink="/login"
-         class="btn-primary text-lg ">
+         class="btn-secondary text-lg ">
         Login
       </a>
 

@@ -3,11 +3,11 @@
 
     <div *ngIf="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
       <div class="text-center">
-        <div class="inline-block w-8 h-8 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+        <div class="inline-block w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
         <p class="text-sm text-gray-500 mt-2">Loading...</p>
       </div>
     </div>
-    <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">
+    <h2 class="text-2xl font-bold text-orange-600 mb-6 text-center">
       {{ step === 1 ? 'Register User' : 'Select Roles' }}
     </h2>
 
@@ -137,7 +137,7 @@
       </div>-->
 
       <button type="button" (click)="nextStep()"
-              class="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 rounded mt-2">
+              class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded mt-2">
         Continue
       </button>
     </form>
@@ -171,7 +171,7 @@
             </button>
             <button type="button"
                     (click)="nextStep()"
-                    class="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded text-sm">
+                    class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm">
               {{ volunteerRoleId !== null && selectedRoleIds.includes(volunteerRoleId) ? 'Continue and Verify' : 'Finish Registration' }}
             </button>
           </div>
@@ -206,7 +206,7 @@
         </div>
         <div class="flex justify-between mt-4">
           <button type="button" (click)="backStep()" class="text-sm text-gray-600 hover:underline">⬅ Back</button>
-          <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded text-sm">
+          <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded text-sm">
             Finish Registration
           </button>
         </div>

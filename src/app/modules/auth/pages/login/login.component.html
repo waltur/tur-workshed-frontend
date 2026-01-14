@@ -2,14 +2,14 @@
   <!-- LOADING SPINNER CENTRADO -->
   <div *ngIf="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
     <div class="text-center">
-      <div class="inline-block w-8 h-8 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+      <div class="inline-block w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
       <p class="text-sm text-gray-500 mt-2">Loading...</p>
     </div>
   </div>
 
   <!-- FORM CONTAINER -->
   <div class="bg-white shadow-md rounded-xl w-full max-w-md p-8 mx-auto mt-10">
-    <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">Welcome Back</h2>
+    <h2 class="text-2xl font-bold text-orange-600 mb-6 text-center">Welcome Back</h2>
 
     <form [formGroup]="loginForm" (ngSubmit)="submit()">
       <!-- Email -->
@@ -18,7 +18,7 @@
         <input
           type="email"
           formControlName="email"
-          class="border border-gray-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-pink-500"
+          class="border border-gray-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
           required
         />
         <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
@@ -34,7 +34,7 @@
           <input
             [type]="showPassword ? 'text' : 'password'"
             formControlName="password"
-            class="border border-gray-300 rounded px-4 py-2 pr-10 w-full focus:outline-none focus:ring-2 focus:ring-pink-500"
+            class="border border-gray-300 rounded px-4 py-2 pr-10 w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
             required
           />
           <button
@@ -55,7 +55,7 @@
       <!-- Submit -->
       <button
         type="submit"
-        class="w-full bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-pink-400"
+        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
       >
         Login
       </button>
@@ -66,7 +66,7 @@
       Don’t have an account?
       <a
         routerLink="/login/register"
-        class="text-pink-600 font-medium hover:underline"
+        class="text-orange-600 font-medium hover:underline"
       >
         Register here
       </a>

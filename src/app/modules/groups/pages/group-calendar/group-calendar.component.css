@@ -1,42 +1,108 @@
-::ng-deep .custom-event-box {
-  background-color: #10B98120;
-  border-left: 4px solid #10B981;
-  margin-bottom: 4px;
-  padding: 4px;
-  border-radius: 4px;
-  font-size: 12px;
+/* Wrapper general */
+.gc-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  padding: 1rem;
 }
 
-::ng-deep .event-title {
+/* Header */
+.gc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.gc-header h2 {
+  font-size: 1.4rem;
   font-weight: 600;
-  color: #065f46;
+  color: #1f2937;
+}
+
+.gc-actions button {
+  background: #f3f4f6;
+  border: none;
+  padding: 6px 10px;
+  margin-left: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.gc-actions button:hover {
+  background: #e5e7eb;
+}
+/* Cabecera días */
+.cal-month-view .cal-header {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cal-month-view .cal-header .cal-cell {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+/* Celdas */
+.cal-month-view .cal-cell {
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  min-height: 120px;
+  padding: 4px;
+}
+
+/* Número del día */
+.cal-month-view .cal-cell-top {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+}
+.custom-event-box {
+  background: #f97316; /* orange-500 */
+  color: white;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  cursor: pointer;
   white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 2000px; /* ajusta este valor según tu diseño */
-    display: inline-block;
-    vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-
-
-
-
-::ng-deep .event-group {
-  color: #047857;
-  font-style: italic;
+.custom-event-box:hover {
+  opacity: 0.9;
+}
+.custom-event-box {
+  background: #f97316; /* orange-500 */
+  color: white;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-::ng-deep .event-roles {
-  margin-top: 2px;
+.custom-event-box:hover {
+  opacity: 0.9;
+}
+.cal-week-view,
+.cal-day-view {
+  background: white;
 }
 
-::ng-deep .role-badge {
-  background-color: #6ee7b7;
-  color: #065f46;
-  padding: 2px 6px;
-  margin-right: 4px;
-  border-radius: 8px;
-  font-size: 11px;
-  display: inline-block;
+.cal-time-label-column {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.cal-event {
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.75rem;
 }

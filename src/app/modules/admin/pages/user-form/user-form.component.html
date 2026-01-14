@@ -1,11 +1,11 @@
 <div class="container mt-5">
   <div class="max-w-3xl mx-auto p-6 bg-white shadow rounded">
-    <h2 class="text-xl font-semibold text-pink-600 mb-4 text-center">
+    <h2 class="text-xl font-semibold text-orange-600 mb-4 text-center">
       {{ mode === 'edit' ? 'Edit User' : 'Create New User' }}
     </h2>
 
     <div *ngIf="loadingUser" class="text-center my-10">
-      <div class="inline-block w-8 h-8 border-4 border-pink-500 border-dashed rounded-full animate-spin"></div>
+      <div class="inline-block w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
       <p class="text-sm text-gray-500 mt-2">Loading user data...</p>
     </div>
 
@@ -14,7 +14,7 @@
 
         <!-- ✅ Profile Photo Upload -->
         <div class="flex flex-col items-center mb-6">
-          <div class="relative w-32 h-32 border-2 border-dashed border-pink-300 rounded-full overflow-hidden bg-gray-50 flex items-center justify-center mb-2">
+          <div class="relative w-32 h-32 border-2 border-dashed border-orange-300 rounded-full overflow-hidden bg-gray-50 flex items-center justify-center mb-2">
             <!-- Mostrar imagen actual o preview -->
             <img
               *ngIf="photoPreview || user?.photo_url"
@@ -118,7 +118,7 @@
           <button type="button" routerLink="/admin/users" class="px-4 py-2 bg-gray-200 rounded">
             Cancel
           </button>
-          <button type="submit" class="px-4 py-2 bg-pink-600 text-white rounded">
+          <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded">
             {{ mode === 'edit' ? 'Update' : 'Create' }}
           </button>
         </div>

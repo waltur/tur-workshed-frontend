@@ -6,7 +6,7 @@
 .title {
   font-size: 2rem;
   margin-bottom: 2rem;
-  color: #3f51b5;
+  color: #FB8C00;
 }
 
 .group-grid {
@@ -63,4 +63,7 @@
 .list-group-item {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid #ddd;
+}
+.calendar-wrapper {
+  margin-bottom: 48px; /* prueba 32px, 48px o 64px */
 }
