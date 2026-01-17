@@ -20,6 +20,14 @@
       <td class="p-2">
         <a [routerLink]="['/groups/edit', group.id_group]" class="text-blue-600 hover:underline">Edit</a>
       </td>
+      <td class="p-2">
+        <button
+          (click)="onDeleteGroup(group.id_group)"
+          class="text-red-600 hover:underline"
+        >
+          Delete
+        </button>
+      </td>
     </tr>
     </tbody>
   </table>
