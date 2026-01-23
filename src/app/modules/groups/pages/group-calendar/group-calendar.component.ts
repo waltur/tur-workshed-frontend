@@ -9,6 +9,7 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { parse } from 'date-fns';
 import { map } from 'rxjs/operators';
+import { v4 as uuidv4 } from 'uuid';
 
 
 interface EventTask {
@@ -16,6 +17,16 @@ interface EventTask {
                    time_range: string;
                    volunteer_needed: number;
                  }
+               interface NewEvent {
+                 id_event: number | null;
+                 title: string;
+                 description: string;
+                 start: string;
+                 end: string;
+
+                 id_group: number | null;
+                 location: string;
+               }
 @Component({
   selector: 'app-group-calendar',
   templateUrl: './group-calendar.component.html',
@@ -34,15 +45,15 @@ export class GroupCalendarComponent {
   selectedGroupId: number | null = null;
   refresh: Subject<void> = new Subject();
   selectedDate: Date = new Date();
-  newEvent = {
-    id_event: null,
-    title: '',
-    description: '',
-    start: '',
-    end: '',
-    id_group: null,
-    location:''
-  };
+newEvent: NewEvent = {
+  id_event: null,
+  title: '',
+  description: '',
+  start: '',
+  end: '',
+  id_group: null,
+  location: ''
+};
 groups: any[] = [];
 eventTasks: EventTask[] = [];
 loading = false;
@@ -55,6 +66,35 @@ editingEventId: number | null = null;
 repeatType: '' | 'weekly' | 'monthly' = '';
 repeatCount: number = 1;
 repeatOption: 'once' | 'weekly' | 'monthly' = 'once';
+recurrence = {
+
+  frequency: 'once', // once | daily | weekly | monthly
+  interval: 1,
+
+  // semanal
+  daysOfWeek: [] as number[],
+
+  // mensual avanzado
+  monthlyWeekCount: 1, // 👈 NUEVO: 1..4
+  monthlyDaysOfWeek: [] as number[], // 👈 NUEVO
+
+  endType: 'count',
+  count: 1,
+  until: null as string | null
+};
+weekDays = [
+  { label: 'Sun', value: 0 },
+  { label: 'Mon', value: 1 },
+  { label: 'Tue', value: 2 },
+  { label: 'Wed', value: 3 },
+  { label: 'Thu', value: 4 },
+  { label: 'Fri', value: 5 },
+  { label: 'Sat', value: 6 },
+];
+// === Monthly configuration ===
+monthlyDaysOfWeek: number[] = [];   // ej: [4] → jueves
+monthlyWeekCount: number = 1;       // 1..4 (1er, 2do, 3er, 4to)
+
 attendees: any[] = [];
 selectedAttendee: any = null;
 showAttendees = false;
@@ -66,6 +106,7 @@ selectedDayEvents: CalendarEvent[] = [];
 events: CalendarEvent<any>[] = [];
 
 
+
 constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
 
 
@@ -75,14 +116,37 @@ constructor(private modalService: NgbModal, private groupService:GroupService, p
     this.isLogged = this.authService.isLoggedIn();
     this.isAdmin = this.authService.isAdmin();
   }
-
+toggleWeekDay(day: number) {
+  const idx = this.recurrence.daysOfWeek.indexOf(day);
+  if (idx >= 0) {
+    this.recurrence.daysOfWeek.splice(idx, 1);
+  } else {
+    this.recurrence.daysOfWeek.push(day);
+  }
+}
 loadEventsByGroup(groupId: number): void {
+  console.log('ENTRÓ A loadEventsByGroup', groupId);
+  this.loading = true;
+
   this.groupService.getEventsByGroup(groupId).subscribe({
     next: (eventsData: any[]) => {
+
+      // ✅ CASO 1: No hay eventos
+      if (!eventsData || eventsData.length === 0) {
+        this.events = [];
+        this.refresh.next();
+        this.loading = false;
+        return;
+      }
+
+      // ✅ CASO 2: Hay eventos
       const eventCalls = eventsData.map(event => {
         return this.groupService.getGroupMembers(event.id_group).pipe(
           map((members: any[]) => {
-            const coordinator = members.find((m: any) => m.name_role === 'Coordinator');
+            const coordinator = members.find(
+              (m: any) => m.name_role === 'Coordinator'
+            );
+
             return {
               title: event.title,
               start: this.parseDateTimeRaw(event.start),
@@ -95,7 +159,6 @@ loadEventsByGroup(groupId: number): void {
                 id_group: event.id_group,
                 tasks: event.tasks || [],
                 coordinator: coordinator?.name || 'N/A',
-               // attended: event.attended || false,
               },
               color: {
                 primary: '#EA580C',
@@ -107,16 +170,25 @@ loadEventsByGroup(groupId: number): void {
         );
       });
 
-      forkJoin(eventCalls).subscribe((events: CalendarEvent[]) => {
-        this.events = events;
-        this.refresh.next();
+      forkJoin(eventCalls).subscribe({
+        next: (events: CalendarEvent[]) => {
+          this.events = events;
+          this.refresh.next();
+          this.loading = false;
+        },
+        error: err => {
+          console.error('Error building events:', err);
+          this.loading = false;
+        }
       });
     },
     error: (err) => {
       console.error('Error loading events for group:', err);
+      this.loading = false;
     }
   });
 }
+
 shouldShowSignature(e: CalendarEvent): boolean {
   return e.meta?.registration_roles?.includes('Attendant') && !e.meta?.signature;
 }
@@ -166,50 +238,115 @@ prevMonth() {
 }
 loadAllEvents(): void {
   this.loadingEvents = true;
-   const contactId = this.authService.getContactId() ?? undefined;
+  const contactId = this.authService.getContactId() ?? undefined;
 
-   this.groupService.getAllEvents(contactId).subscribe({
-     next: (eventsData: any[]) => {
-       const eventCalls = eventsData.map(event =>
-         this.groupService.getGroupMembers(event.id_group).pipe(
-           map((members: any[]) => {
-             const coordinator = members.find((m: any) => m.name_role === 'Coordinator');
-             return {
-               title: event.title,
-               start: this.parseDateTimeRaw(event.start),
-               end: this.parseDateTimeRaw(event.end),
-               meta: {
-                 id_event: event.id_event,
-                 description: event.description,
-                 group: event.group_name || '',
-                 registration_roles: event.registration_roles || [],
-                 location: event.location,
-                 id_group: event.id_group,
-                 tasks: event.tasks || [],
-                 coordinator: coordinator?.name || 'N/A',
-                 attended: event.attended || false,
-                 signature: event.signature || null,
-               },
-               color: {
-                 primary: '#10B981',
-                 secondary: '#D1FAE5'
-               },
-               allDay: false
-             };
-           })
-         )
-       );
+  this.groupService.getAllEvents(contactId).subscribe({
+    next: (eventsData: any[]) => {
 
-       forkJoin(eventCalls).subscribe((events: CalendarEvent[]) => {
-         this.events = events;
-         this.refresh.next();
+      // 🔥 CASO CLAVE: no hay eventos
+      if (!eventsData || eventsData.length === 0) {
+        this.events = [];
+        this.refresh.next();
+        this.loadingEvents = false;
+        return;
+      }
+
+      const eventCalls = eventsData.map(event =>
+        this.groupService.getGroupMembers(event.id_group).pipe(
+          map((members: any[]) => {
+            const coordinator = members.find(
+              (m: any) => m.name_role === 'Coordinator'
+            );
+
+            return {
+              title: event.title,
+              start: this.parseDateTimeRaw(event.start),
+              end: this.parseDateTimeRaw(event.end),
+              meta: {
+                id_event: event.id_event,
+                description: event.description,
+                group: event.group_name || '',
+                registration_roles: event.registration_roles || [],
+                location: event.location,
+                id_group: event.id_group,
+                tasks: event.tasks || [],
+                coordinator: coordinator?.name || 'N/A',
+                attended: event.attended || false,
+                signature: event.signature || null,
+              },
+              color: {
+                primary: '#10B981',
+                secondary: '#D1FAE5'
+              },
+              allDay: false
+            };
+          })
+        )
+      );
+
+      forkJoin(eventCalls).subscribe({
+        next: (events: CalendarEvent[]) => {
+          this.events = events;
+          this.refresh.next();
           this.loadingEvents = false;
-       });
-     },
+        },
+        error: () => {
+          this.loadingEvents = false;
+        }
+      });
+    },
 
-     error: () =>{ this.loadingEvents = false; console.error('Failed to load events')}
-   });
- }
+    error: () => {
+      this.loadingEvents = false;
+      console.error('Failed to load events');
+    }
+  });
+}
+toggleDay(day: number): void {
+   if (this.recurrence.frequency === 'monthly') {
+      const idx = this.monthlyDaysOfWeek.indexOf(day);
+
+      if (idx >= 0) {
+        this.monthlyDaysOfWeek.splice(idx, 1);
+      } else {
+        this.monthlyDaysOfWeek = [day]; // mensual = solo uno
+      }
+      return;
+    }
+
+  const index = this.recurrence.daysOfWeek.indexOf(day);
+
+  if (index > -1) {
+    this.recurrence.daysOfWeek.splice(index, 1);
+  } else {
+    this.recurrence.daysOfWeek.push(day);
+  }
+}
+getNthWeekdayOfMonth(
+  year: number,
+  month: number,        // 0-based
+  weekday: number,      // 0=Sun ... 6=Sat
+  nth: number           // 1=first, 2=second...
+): Date | null {
+  let count = 0;
+
+  for (let d = 1; d <= 31; d++) {
+    const date = new Date(year, month, d);
+    if (date.getMonth() !== month) break;
+
+    if (date.getDay() === weekday) {
+      count++;
+      if (count === nth) {
+        return date;
+      }
+    }
+  }
+
+  return null;
+}
+
+
+
 loadGroups(): void {
   console.log("loadGroups");
   this.groupService.getGroups().subscribe(groups => {
@@ -246,6 +383,7 @@ onGroupChange(): void {
     this.loadAllEvents();
   }
 }
+
 
 
 getRegistrationLabel(type: string): string {
@@ -301,39 +439,113 @@ openNewEventModal(event?: any): void {
   console.log("openNewEventModal");
   this.isEditing = !!event;
 
+
   if (event) {
     this.editingEventId = event.meta?.id_event;
      this.newEvent = {
-       id_event: event.meta?.id_event || null,  // 👈 agrega esta línea
-       title: event.title,
-       description: event.meta?.description || '',
-      start: this.formatDateTimeLocal(event.start),
-      end: this.formatDateTimeLocal(event.end),
-       id_group: event.meta?.id_group || null,
-       location: event.meta?.location || ''
-     };
+     id_event: event.meta?.id_event || null,
+     title: event.title,
+     description: event.meta?.description || '',
+     start: this.formatDateTimeLocal(event.start),
+     end: this.formatDateTimeLocal(event.end),
+     id_group: event.meta?.id_group || null,
+     location: event.meta?.location || ''
+   };
 
     this.eventTasks = event.meta?.tasks || [];
   } else {
     this.editingEventId = null;
-    this.newEvent = {
-      id_event: null,
-      title: '',
-      description: '',
-      start: '',
-      end: '',
-      id_group: null,
-      location: ''
-    };
+  this.newEvent = {
+    id_event: null,
+    title: '',
+    description: '',
+    start: '',
+    end: '',
+    id_group: null,
+    location: ''
+  };
+    this.recurrence.frequency = 'once';
+    this.recurrence.interval = 1;
+    this.recurrence.daysOfWeek = [];
+    this.monthlyWeekCount = 1;
+    this.monthlyDaysOfWeek = [];
+    this.recurrence.count = 1;
+    this.recurrence.until = null;
+
     this.eventTasks = [];
   }
 
   this.modalService.open(this.eventModal); // asegúrate que tienes el @ViewChild
+
 }
+toggleMonthlyDay(day: number) {
+  const index = this.monthlyDaysOfWeek.indexOf(day);
+  if (index >= 0) {
+    this.monthlyDaysOfWeek.splice(index, 1);
+  } else {
+    this.monthlyDaysOfWeek.push(day);
+  }
+}
+generateRecurringDates(): { start: Date; end: Date | null }[] {
+  const baseStart = new Date(this.newEvent.start);
+  const baseEnd = this.newEvent.end ? new Date(this.newEvent.end) : null;
+
+  if (this.recurrence.frequency === 'once') {
+    return [{ start: baseStart, end: baseEnd }];
+  }
+
+  /*if (this.recurrence.frequency === 'weekly') {
+    return this.generateWeeklyDates();
+  }*/
+
+  if (this.recurrence.frequency === 'monthly') {
+    // 👇 luego conectamos aquí la lógica mensual limpia
+    return [];
+  }
+
+  return [];
+}
+generateWeeklyDates(
+  rangeStart: Date,
+  rangeEnd: Date,
+  daysOfWeek: number[],
+  durationMs: number
+): { start: Date; end: Date }[] {
+
+  const results: { start: Date; end: Date }[] = [];
+  const cursor = new Date(rangeStart);
+  const daysSet = new Set(daysOfWeek);
+
+  while (cursor <= rangeEnd) {
+    if (daysSet.has(cursor.getDay())) {
+
+      const start = new Date(cursor);
+      start.setHours(
+        rangeStart.getHours(),
+        rangeStart.getMinutes(),
+        0,
+        0
+      );
+
+      const end = new Date(start.getTime() + durationMs);
+
+      results.push({ start, end });
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return results;
+}
+
+
+
+
 formatDateTime(date: Date | string): string {
   const d = new Date(date);
   return d.toISOString().slice(0, 16); // formato compatible con input[type="datetime-local"]
 }
+
 
 
 private parseDateTime(dateString?: string | null): Date {
@@ -398,7 +610,6 @@ removeTask(index: number) {
   this.eventTasks.splice(index, 1);
 }
 createEvent(): void {
-  console.log("createEvent");
   this.loading = true;
 
   if (!this.newEvent.title || !this.newEvent.id_group || !this.newEvent.start) {
@@ -406,40 +617,97 @@ createEvent(): void {
     Swal.fire('Missing data', 'Please select a group and enter a title/date', 'warning');
     return;
   }
- const startDate = new Date(this.newEvent.start);
-  const endDate = new Date(this.newEvent.end);
-  if (endDate < startDate) {
+const eventStart = new Date(this.newEvent.start);
+
+const eventEnd = this.newEvent.end
+  ? new Date(this.newEvent.end)
+  : new Date(this.newEvent.start);
+const startDate = eventStart;
+const endDate = eventEnd;
+const eventDuration = eventEnd.getTime() - eventStart.getTime();
+
+
+// 👉 duración fija (1 hora por ahora)
+const DURATION_MS = 60 * 60 * 1000;
+
+// 👉 rango de recurrencia (fecha SOLA, sin hora)
+const rangeStart = new Date(this.newEvent.start);
+const rangeEnd = new Date(this.newEvent.end);
+rangeEnd.setHours(23, 59, 59, 999);
+
+if (endDate < startDate) {
+  this.loading = false;
+  Swal.fire('Invalid dates', 'End date cannot be before start date', 'error');
+  return;
+}
+
+const duration = endDate.getTime() - startDate.getTime();
+
+  // 🧠 GENERAR FECHAS CORRECTAS
+  let dates: { start: Date; end: Date }[] = [];
+
+// 🟢 Recurrente semanal
+if (this.recurrence.frequency === 'weekly') {
+  if (!this.recurrence.daysOfWeek.length) {
     this.loading = false;
-    Swal.fire('Invalid dates', 'End date cannot be before start date', 'error');
+    Swal.fire('Invalid recurrence', 'Please select at least one weekday', 'warning');
     return;
   }
-  const baseStart = new Date(this.newEvent.start);
-  const baseEnd = new Date(this.newEvent.end || this.newEvent.start);
-  const repeatCount = this.repeatOption === 'once' ? 1 : this.repeatCount;
 
-  const eventsToCreate = [];
+  dates = this.generateWeeklyDates(
+    rangeStart,
+    rangeEnd,
+    this.recurrence.daysOfWeek,
+    DURATION_MS
+  );
 
+}else if (this.recurrence.frequency === 'monthly') {
 
+  dates = this.generateMonthlyNthWeekdayDates(
+    rangeStart,   // 👈 mismo rango que weekly
+    rangeEnd,
+    this.monthlyDaysOfWeek,
+    this.monthlyWeekCount,
+    DURATION_MS
+  );
 
-    eventsToCreate.push({
-      title: this.newEvent.title,
-      description: this.newEvent.description,
-     start: this.newEvent.start, // convierte a UTC
-      end: this.newEvent.end,    // convierte a UTC
-      id_group: this.newEvent.id_group,
-      location: this.newEvent.location,
-      repeatType: this.repeatOption || '',   // 'weekly' o 'monthly'
-      repeatCount: repeatCount || 1,
-    });
+// 🟢 Evento único
+} else {
+  dates.push({ start: startDate, end: endDate });
+}
 
+  /*if (!dates.length) {
+    this.loading = false;
+    Swal.fire('Invalid recurrence', 'Please select valid days for recurrence', 'warning');
+    return;
+  }*/
 
-  // Crear todos los eventos en paralelo
-  const eventCalls = eventsToCreate.map(eventData =>
-    this.groupService.createEvent(eventData)
+  const seriesId =
+    this.recurrence.frequency !== 'once'
+      ? uuidv4()
+      : null;
+
+const eventsToCreate = dates.map(d => ({
+  title: this.newEvent.title,
+  description: this.newEvent.description,
+  start: this.formatLocalDateTimeString(
+    this.formatDateTimeLocal(d.start)
+  ),
+  end: this.formatLocalDateTimeString(
+    this.formatDateTimeLocal(d.end)
+  ),
+  id_group: this.newEvent.id_group,
+  location: this.newEvent.location,
+  series_id: uuidv4()
+}));
+
+  const eventCalls = eventsToCreate.map(e =>
+    this.groupService.createEvent(e)
   );
 
   forkJoin(eventCalls).subscribe({
     next: (createdEvents: any[]) => {
+
       const allTaskCalls = createdEvents.flatMap((event: any) =>
         this.eventTasks.map(task =>
           this.groupService.createEventTask({
@@ -451,9 +719,9 @@ createEvent(): void {
         )
       );
 
-      if (allTaskCalls.length === 0) {
+      if (!allTaskCalls.length) {
         this.loading = false;
-        Swal.fire('Success', 'Event(s) created successfully (no tasks)', 'success');
+        Swal.fire('Success', 'Event(s) created successfully', 'success');
         this.loadAllEvents();
         this.modalService.dismissAll();
         return;
@@ -478,6 +746,86 @@ createEvent(): void {
     }
   });
 }
+generateMonthlyNthWeekdayDates(
+  startDate: Date,
+  endDate: Date,
+  weekdays: number[],
+  weekOrder: number,
+  duration: number
+): { start: Date; end: Date }[] {
+
+  const results: { start: Date; end: Date }[] = [];
+
+  const cursor = new Date(startDate);
+  cursor.setDate(1);
+
+  while (cursor <= endDate) {
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
+
+    for (const weekday of weekdays) {
+      const occurrence = this.getNthWeekdayOfMonth(
+        year,
+        month,
+        weekday,
+        weekOrder
+      );
+
+      if (!occurrence) continue;
+      if (occurrence < startDate || occurrence > endDate) continue;
+
+      const start = new Date(
+        occurrence.getFullYear(),
+        occurrence.getMonth(),
+        occurrence.getDate(),
+        startDate.getHours(),
+        startDate.getMinutes(),
+        0,
+        0
+      );
+
+      const end = new Date(start.getTime() + duration);
+
+      results.push({ start, end });
+    }
+
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return results;
+}
+
+
+generateDailyDates(): { start: Date; end: Date }[] {
+  const results: { start: Date; end: Date }[] = [];
+
+  const start = new Date(this.newEvent.start);
+  const endLimit = new Date(this.newEvent.end!);
+  const duration = this.getEventDuration();
+
+  let current = new Date(start);
+
+  while (current <= endLimit) {
+    const startDate = new Date(current);
+    const endDate = new Date(startDate.getTime() + duration);
+    results.push({ start: startDate, end: endDate });
+
+    current.setDate(current.getDate() + this.recurrence.interval);
+  }
+
+  return results;
+}
+generateOnceDate(): { start: Date; end: Date }[] {
+  const start = new Date(this.newEvent.start);
+  const end = new Date(this.newEvent.end || this.newEvent.start);
+  return [{ start, end }];
+}
+getEventDuration(): number {
+  const start = new Date(this.newEvent.start);
+  const end = new Date(this.newEvent.end || this.newEvent.start);
+  return end.getTime() - start.getTime();
+}
+
 formatLocalDateTimeString(dateStr: string): string {
   // Recibe "2025-07-17T22:55" y devuelve "2025-07-17 22:55:00"
   return dateStr.replace('T', ' ') + ':00';
@@ -513,7 +861,9 @@ canCreateEvent(): boolean {
         event.start.toDateString() === this.viewDate.toDateString()
     );
   }
-
+isRecurring(event: any): boolean {
+  return !!event.series_id;
+}
 registerAsAttendee(event: CalendarEvent): void {
   const eventId = event.meta?.id_event;
   const contactId = this.authService.getContactId();
@@ -772,6 +1122,7 @@ editEvent(id_event: number): void {
     Swal.fire('Missing data', 'Please complete all required fields', 'warning');
     return;
   }
+
   const startDate = new Date(this.newEvent.start);
   const endDate = new Date(this.newEvent.end);
   if (endDate < startDate) {
@@ -788,49 +1139,114 @@ editEvent(id_event: number): void {
     location: this.newEvent.location
   };
 
-  this.groupService.updateEvent(id_event, updatedData).subscribe({
-    next: () => {
-      // Si no hay tareas, cerrar directamente
-      if (!this.eventTasks || this.eventTasks.length === 0) {
-        this.loadAllEvents();
-        this.modalService.dismissAll();
-        Swal.fire('Success', 'Event updated successfully (no tasks)', 'success');
-        return;
+  const selectedEvent = this.selectedEvent;
+  const isRecurring = !!selectedEvent?.series_id;
+
+  // 🔁 Reutilizable: tareas + cerrar modal
+  const updateTasksAndFinish = () => {
+    if (!this.eventTasks || this.eventTasks.length === 0) {
+      this.loadAllEvents();
+      this.modalService.dismissAll();
+      Swal.fire('Success', 'Event updated successfully', 'success');
+      return;
+    }
+
+    this.groupService.deleteTasksByEventId(id_event).subscribe({
+      next: () => {
+        const taskCalls = this.eventTasks.map(task =>
+          this.groupService.createEventTask({
+            id_event,
+            task_name: task.task_name,
+            time_range: task.time_range,
+            volunteer_needed: task.volunteer_needed
+          })
+        );
+
+        forkJoin(taskCalls).subscribe({
+          next: () => {
+            this.loadAllEvents();
+            this.modalService.dismissAll();
+            Swal.fire('Success', 'Event and tasks updated successfully', 'success');
+          },
+          error: () => {
+            Swal.fire('Error', 'Event updated but failed to create tasks', 'error');
+          }
+        });
+      },
+      error: () => {
+        Swal.fire('Error', 'Failed to delete previous tasks', 'error');
       }
+    });
+  };
 
-      // ✅ Borrar tareas existentes y luego crear nuevas
-      this.groupService.deleteTasksByEventId(id_event).subscribe({
-        next: () => {
-          const taskCalls = this.eventTasks.map(task =>
-            this.groupService.createEventTask({
-              id_event,
-              task_name: task.task_name,
-              time_range: task.time_range,
-              volunteer_needed: task.volunteer_needed
-            })
-          );
+  // 🟢 EVENTO NO RECURRENTE (NO CAMBIA)
+  if (!isRecurring) {
+    this.groupService.updateEvent(id_event, updatedData).subscribe({
+      next: () => updateTasksAndFinish(),
+      error: () => Swal.fire('Error', 'Failed to update event', 'error')
+    });
+    return;
+  }
 
-          forkJoin(taskCalls).subscribe({
-            next: () => {
-              this.loadAllEvents();
-              this.modalService.dismissAll();
-              Swal.fire('Success', 'Event and tasks updated successfully', 'success');
-            },
-            error: () => {
-              Swal.fire('Error', 'Event updated but failed to create tasks', 'error');
-            }
-          });
-        },
-        error: () => {
-          Swal.fire('Error', 'Failed to delete previous tasks', 'error');
-        }
+  // 🔁 EVENTO RECURRENTE
+  Swal.fire({
+    title: 'Edit recurring event',
+    text: 'Which events do you want to update?',
+    icon: 'question',
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: 'Only this event',
+    denyButtonText: 'This and following',
+    cancelButtonText: 'All events'
+  }).then(result => {
+
+    // 🔹 SOLO ESTE EVENTO
+    if (result.isConfirmed) {
+      this.groupService.updateEvent(id_event, updatedData).subscribe({
+        next: () => updateTasksAndFinish(),
+        error: () => Swal.fire('Error', 'Failed to update event', 'error')
       });
-    },
-    error: () => {
-      Swal.fire('Error', 'Failed to update event', 'error');
+    }
+
+    // 🔹 ESTE Y LOS SIGUIENTES
+    else if (result.isDenied) {
+      this.groupService.updateSeries(
+        selectedEvent.series_id,
+        {
+          scope: 'from',
+          fromDate: selectedEvent.start,
+          ...updatedData
+        }
+      ).subscribe({
+        next: () => {
+          this.loadAllEvents();
+          this.modalService.dismissAll();
+          Swal.fire('Success', 'Future events updated successfully', 'success');
+        },
+        error: () => Swal.fire('Error', 'Failed to update future events', 'error')
+      });
+    }
+
+    // 🔹 TODOS LOS EVENTOS
+    else if (result.dismiss === Swal.DismissReason.cancel) {
+      this.groupService.updateSeries(
+        selectedEvent.series_id,
+        {
+          scope: 'all',
+          ...updatedData
+        }
+      ).subscribe({
+        next: () => {
+          this.loadAllEvents();
+          this.modalService.dismissAll();
+          Swal.fire('Success', 'All events updated successfully', 'success');
+        },
+        error: () => Swal.fire('Error', 'Failed to update event series', 'error')
+      });
     }
   });
 }
+
 openSignatureModal(event: any): void {
   this.selectedEvent = event;
   this.modalService.open(this.signatureModal);

@@ -106,3 +106,13 @@
   padding: 4px 6px;
   font-size: 0.75rem;
 }
+.event-title {
+  height: 18px;
+  line-height: 18px;
+}
+.cal-month-view .cal-event {
+  max-height: 18px;
+}
+.cal-month-view .cal-day-cell {
+  overflow: hidden !important;
+}

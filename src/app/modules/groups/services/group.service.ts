@@ -130,5 +130,13 @@ getAttendanceReport(id_event: number) {
 deleteEventCascade(id: number): Observable<any> {
   return this.http.delete(`${this.eventUrl}/events/cascade/${id}`);
 }
+// 🔁 Actualizar TODA la serie
+updateSeries(seriesId: string, eventData: any): Observable<any> {
+  return this.http.put(
+    `${this.eventUrl}/series/${seriesId}`,
+    eventData
+  );
+}
+
 
 }
