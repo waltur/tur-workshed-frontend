@@ -165,6 +165,46 @@
     <p><strong>Start:</strong> {{ selectedEvent?.start | date: 'fullDate' }} {{ selectedEvent?.start | date:'shortTime' }}</p>
     <p><strong>End:</strong> {{ selectedEvent?.end | date: 'fullDate' }} {{ selectedEvent?.end | date:'shortTime' }}</p>
   </div>
+  <!-- REGISTRO DE USUARIO -->
+  <div *ngIf="isMember()" class="mt-4 border-t pt-3">
+
+    <!-- NO REGISTRADO -->
+   <div class="text-center mt-4">
+    <button
+      *ngIf="!selectedEvent.meta?.registration_roles?.includes('Attendant')"
+      (click)="registerAsAttendee(selectedEvent)"
+      class="bg-green-600 text-white px-3 py-1 rounded text-sm">
+      Book
+    </button>
+
+    <!-- REGISTRADO / NO CONFIRMADO -->
+    <div
+      *ngIf="selectedEvent.meta?.registration_roles?.includes('Attendant')
+           && !selectedEvent.meta?.attended"
+      class="text-yellow-600 text-sm mt-2">
+      Booking confirmed...
+    </div>
+
+    <!-- CONFIRMADO / SIN FIRMA -->
+    <button
+      *ngIf="selectedEvent.meta?.attended && !selectedEvent.meta?.signature"
+      (click)="openSignatureModal(selectedEvent)"
+      class="bg-indigo-600 text-white px-3 py-1 rounded text-sm mt-2">
+      Confirm Attendance (Signature)
+    </button>
+
+    <!-- YA FIRMÓ -->
+    <div
+      *ngIf="selectedEvent.meta?.signature"
+      class="text-green-600 text-sm mt-2">
+      Attendance Confirmed
+    </div>
+
+
+    </div>
+  </div>
+
+
   <!-- Mostrar asistentes solo si es admin o coordinador del grupo -->
   <div *ngIf="isAdmin || coordinatorGroupIds.includes(selectedEvent.meta?.id_group)" class="text-center mt-4">
 
@@ -269,6 +309,13 @@
   </div>
 
 </ng-template>
+<!-- 🔒 Modal de firma -->
+<ng-template #signatureModal let-modal>
+  <app-signature-capture
+    (signatureCompleted)="onSignatureCompleted($event, selectedEvent, modal)">
+  </app-signature-capture>
+</ng-template>
+
 <ng-template #eventModal  let-modal>
   <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
     <div *ngIf="loading" class="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center">
@@ -363,7 +410,7 @@
 
             <select
               class="form-select w-50"
-              [(ngModel)]="monthlyWeekCount">
+              [(ngModel)]="recurrence.monthlyWeekCount">
               <option [value]="1">First</option>
               <option [value]="2">Second</option>
               <option [value]="3">Third</option>
@@ -379,7 +426,7 @@
                 type="button"
                 class="btn btn-outline-primary btn-sm"
                 *ngFor="let day of weekDays"
-                [class.active]="monthlyDaysOfWeek.includes(day.value)"
+                [class.active]="recurrence.monthlyDaysOfWeek.includes(day.value)"
                 (click)="toggleMonthlyDay(day.value)">
                 {{ day.label }}
               </button>
@@ -387,7 +434,7 @@
 
             <!-- VALIDACIÓN -->
             <div class="text-danger small mt-2"
-                 *ngIf="monthlyDaysOfWeek.length === 0">
+                 *ngIf="recurrence.monthlyDaysOfWeek.length === 0">
               Please select at least one day for monthly recurrence.
             </div>
           </div>

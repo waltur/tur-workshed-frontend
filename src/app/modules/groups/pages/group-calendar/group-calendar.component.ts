@@ -91,9 +91,7 @@ weekDays = [
   { label: 'Fri', value: 5 },
   { label: 'Sat', value: 6 },
 ];
-// === Monthly configuration ===
-monthlyDaysOfWeek: number[] = [];   // ej: [4] → jueves
-monthlyWeekCount: number = 1;       // 1..4 (1er, 2do, 3er, 4to)
+
 
 attendees: any[] = [];
 selectedAttendee: any = null;
@@ -304,12 +302,12 @@ loadAllEvents(): void {
 }
 toggleDay(day: number): void {
    if (this.recurrence.frequency === 'monthly') {
-      const idx = this.monthlyDaysOfWeek.indexOf(day);
+      const idx = this.recurrence.monthlyDaysOfWeek.indexOf(day);
 
       if (idx >= 0) {
-        this.monthlyDaysOfWeek.splice(idx, 1);
+        this.recurrence.monthlyDaysOfWeek.splice(idx, 1);
       } else {
-        this.monthlyDaysOfWeek = [day]; // mensual = solo uno
+        this.recurrence.monthlyDaysOfWeek = [day]; // mensual = solo uno
       }
       return;
     }
@@ -467,8 +465,8 @@ openNewEventModal(event?: any): void {
     this.recurrence.frequency = 'once';
     this.recurrence.interval = 1;
     this.recurrence.daysOfWeek = [];
-    this.monthlyWeekCount = 1;
-    this.monthlyDaysOfWeek = [];
+    this.recurrence.monthlyWeekCount = 1;
+    this.recurrence.monthlyDaysOfWeek = [];
     this.recurrence.count = 1;
     this.recurrence.until = null;
 
@@ -479,11 +477,11 @@ openNewEventModal(event?: any): void {
 
 }
 toggleMonthlyDay(day: number) {
-  const index = this.monthlyDaysOfWeek.indexOf(day);
+  const index = this.recurrence.monthlyDaysOfWeek.indexOf(day);
   if (index >= 0) {
-    this.monthlyDaysOfWeek.splice(index, 1);
+    this.recurrence.monthlyDaysOfWeek.splice(index, 1);
   } else {
-    this.monthlyDaysOfWeek.push(day);
+    this.recurrence.monthlyDaysOfWeek.push(day);
   }
 }
 generateRecurringDates(): { start: Date; end: Date | null }[] {
@@ -666,8 +664,8 @@ if (this.recurrence.frequency === 'weekly') {
   dates = this.generateMonthlyNthWeekdayDates(
     rangeStart,   // 👈 mismo rango que weekly
     rangeEnd,
-    this.monthlyDaysOfWeek,
-    this.monthlyWeekCount,
+    this.recurrence.monthlyDaysOfWeek,
+    this.recurrence.monthlyWeekCount,
     DURATION_MS
   );
 
@@ -704,7 +702,16 @@ const eventsToCreate = dates.map(d => ({
   const eventCalls = eventsToCreate.map(e =>
     this.groupService.createEvent(e)
   );
-
+// 🔥 FIX CRÍTICO
+if (!eventCalls.length) {
+  this.loading = false;
+  Swal.fire(
+    'Invalid recurrence',
+    'Please select at least one weekday for monthly recurrence',
+    'warning'
+  );
+  return;
+}
   forkJoin(eventCalls).subscribe({
     next: (createdEvents: any[]) => {
 
@@ -885,7 +892,20 @@ registerAsAttendee(event: CalendarEvent): void {
     if (result.isConfirmed) {
       this.groupService.registerAttendee({ id_event: eventId, id_contact: contactId }).subscribe({
         next: () => {
-          this.loadAllEvents(); // recarga para marcar visualmente el registro si lo aplicas
+ // 🔥 ACTUALIZAR EL EVENTO LOCAL
+            if (!event.meta) {
+              event.meta = {};
+            }
+
+            event.meta.registration_roles = [
+              ...(event.meta.registration_roles || []),
+              'Attendant'
+            ];
+
+            event.meta.attended = false; // queda en espera de confirmación
+
+            // 🔄 refrescar vista
+            this.refresh.next();
           Swal.fire('Registered', 'You have been registered as an attendee', 'success');
         },
         error: (err) => {
@@ -1015,6 +1035,7 @@ openTimesheetModal(eventId: number, contactId: number) {
 }
 
 isMember(): boolean {
+  console.log("es miembro",this.authService.getUserRoles());
   // Por ejemplo, si tener rol 'Member' significa ser miembro
   return this.authService.isMember();
 }
@@ -1267,11 +1288,33 @@ onSignatureCompleted(dataUrl: string, event: any, modal: any) {
     id_contact: contactId!,
     signature: dataUrl
   }).subscribe({
-    next: () => {
-      Swal.fire('Asistencia confirmada', 'Firma registrada con éxito', 'success');
-      modal.close();
-      this.loadAllEvents();
-    },
+   next: () => {
+
+     // 🔥 ACTUALIZAR EVENTO LOCAL
+     if (!event.meta) {
+       event.meta = {};
+     }
+
+     event.meta.signature = dataUrl;
+     event.meta.attended = true;
+
+     // 🔄 refrescar vista
+     this.refresh.next();
+
+     Swal.fire(
+       'Asistencia confirmada',
+       'Firma registrada con éxito',
+       'success'
+     );
+
+     modal.close();
+
+     // ❌ NO loadAllEvents() aquí
+   },
+
+
+
+
     error: () => {
       Swal.fire('Error', 'No se pudo guardar la firma', 'error');
     }
