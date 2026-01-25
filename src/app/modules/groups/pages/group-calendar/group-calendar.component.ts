@@ -322,22 +322,25 @@ toggleDay(day: number): void {
 }
 getNthWeekdayOfMonth(
   year: number,
-  month: number,        // 0-based
-  weekday: number,      // 0=Sun ... 6=Sat
-  nth: number           // 1=first, 2=second...
+  month: number,      // 0–11
+  weekday: number,    // 0=Sunday … 6=Saturday
+  n: number           // 1=First, 2=Second, 3=Third, 4=Fourth
 ): Date | null {
+
   let count = 0;
 
-  for (let d = 1; d <= 31; d++) {
-    const date = new Date(year, month, d);
-    if (date.getMonth() !== month) break;
+  // empezar desde el día 1 del mes
+  const date = new Date(year, month, 1);
 
+  while (date.getMonth() === month) {
     if (date.getDay() === weekday) {
       count++;
-      if (count === nth) {
-        return date;
+
+      if (count === n) {
+        return new Date(date);
       }
     }
+    date.setDate(date.getDate() + 1);
   }
 
   return null;
@@ -630,8 +633,21 @@ const DURATION_MS = 60 * 60 * 1000;
 
 // 👉 rango de recurrencia (fecha SOLA, sin hora)
 const rangeStart = new Date(this.newEvent.start);
-const rangeEnd = new Date(this.newEvent.end);
+let rangeEnd = this.newEvent.end
+  ? new Date(this.newEvent.end)
+  : new Date(this.newEvent.start);
 rangeEnd.setHours(23, 59, 59, 999);
+if (!this.newEvent.end) {
+  if (this.recurrence.frequency === 'monthly') {
+    rangeEnd.setMonth(rangeEnd.getMonth() + 3);
+  }
+
+  if (this.recurrence.frequency === 'weekly') {
+    rangeEnd.setMonth(rangeEnd.getMonth() + 1);
+  }
+}
+
+
 
 if (endDate < startDate) {
   this.loading = false;
@@ -660,12 +676,17 @@ if (this.recurrence.frequency === 'weekly') {
   );
 
 }else if (this.recurrence.frequency === 'monthly') {
-
+ console.log('MONTHLY INPUT', {
+    rangeStart,
+    rangeEnd,
+    days: this.recurrence.monthlyDaysOfWeek,
+    week: this.recurrence.monthlyWeekCount
+  });
   dates = this.generateMonthlyNthWeekdayDates(
     rangeStart,   // 👈 mismo rango que weekly
     rangeEnd,
     this.recurrence.monthlyDaysOfWeek,
-    this.recurrence.monthlyWeekCount,
+    Number(this.recurrence.monthlyWeekCount),
     DURATION_MS
   );
 
@@ -696,7 +717,7 @@ const eventsToCreate = dates.map(d => ({
   ),
   id_group: this.newEvent.id_group,
   location: this.newEvent.location,
-  series_id: uuidv4()
+  series_id: seriesId
 }));
 
   const eventCalls = eventsToCreate.map(e =>
@@ -754,53 +775,60 @@ if (!eventCalls.length) {
   });
 }
 generateMonthlyNthWeekdayDates(
-  startDate: Date,
-  endDate: Date,
-  weekdays: number[],
-  weekOrder: number,
-  duration: number
+  rangeStart: Date,
+  rangeEnd: Date,
+  daysOfWeek: number[],   // 0..6
+  weekCount: number,      // 1..4
+  durationMs: number
 ): { start: Date; end: Date }[] {
 
   const results: { start: Date; end: Date }[] = [];
 
-  const cursor = new Date(startDate);
-  cursor.setDate(1);
+  const current = new Date(rangeStart);
+  current.setDate(1); // empezar desde el inicio del mes
 
-  while (cursor <= endDate) {
-    const year = cursor.getFullYear();
-    const month = cursor.getMonth();
+  while (current <= rangeEnd) {
+    const year = current.getFullYear();
+    const month = current.getMonth();
 
-    for (const weekday of weekdays) {
-      const occurrence = this.getNthWeekdayOfMonth(
-        year,
-        month,
-        weekday,
-        weekOrder
-      );
+    for (const dayOfWeek of daysOfWeek) {
+      let count = 0;
 
-      if (!occurrence) continue;
-      if (occurrence < startDate || occurrence > endDate) continue;
+      // recorrer días del mes
+      for (let day = 1; day <= 31; day++) {
+        const date = new Date(year, month, day);
 
-      const start = new Date(
-        occurrence.getFullYear(),
-        occurrence.getMonth(),
-        occurrence.getDate(),
-        startDate.getHours(),
-        startDate.getMinutes(),
-        0,
-        0
-      );
+        if (date.getMonth() !== month) break;
 
-      const end = new Date(start.getTime() + duration);
+        if (date.getDay() === dayOfWeek) {
+          count++;
 
-      results.push({ start, end });
+          if (count === weekCount) {
+            const start = new Date(date);
+            start.setHours(
+              rangeStart.getHours(),
+              rangeStart.getMinutes(),
+              0,
+              0
+            );
+
+            const end = new Date(start.getTime() + durationMs);
+
+           if (start <= rangeEnd) {
+              results.push({ start, end });
+            }
+            break;
+          }
+        }
+      }
     }
 
-    cursor.setMonth(cursor.getMonth() + 1);
+    current.setMonth(current.getMonth() + 1);
   }
-
+  console.log('MONTHLY GENERATED', results);
   return results;
 }
+
 
 
 generateDailyDates(): { start: Date; end: Date }[] {
