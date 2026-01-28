@@ -719,7 +719,7 @@ const eventsToCreate = dates.map(d => ({
   location: this.newEvent.location,
   series_id: seriesId
 }));
-
+console.log("eventsToCreate", eventsToCreate);
   const eventCalls = eventsToCreate.map(e =>
     this.groupService.createEvent(e)
   );
@@ -1063,7 +1063,7 @@ openTimesheetModal(eventId: number, contactId: number) {
 }
 
 isMember(): boolean {
-  console.log("es miembro",this.authService.getUserRoles());
+
   // Por ejemplo, si tener rol 'Member' significa ser miembro
   return this.authService.isMember();
 }
@@ -1106,9 +1106,9 @@ private adjustDate(amount: number): Date {
   return date;
 }
 confirmDeleteEvent(event: any): void {
-  if (confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-    this.deleteEvent(event.id); // Llama al servicio que elimina el evento
-  }
+  console.log("confirmDeleteEvent", event);
+    this.deleteEvent(event.meta.id_event); // Llama al servicio que elimina el evento
+
 }
 
 deleteEvent(eventId: number): void {
@@ -1125,6 +1125,7 @@ deleteEvent(eventId: number): void {
       this.groupService.deleteEvent(eventId).subscribe({
         next: () => {
           this.loadAllEvents();
+          this.modalService.dismissAll();
           Swal.fire({
             icon: 'success',
             title: 'Deleted!',
@@ -1145,7 +1146,9 @@ deleteEvent(eventId: number): void {
                 // Llama a delete cascade
                 this.groupService.deleteEventCascade(eventId).subscribe(() => {
                   this.loadAllEvents();
+                  this.modalService.dismissAll();
                   Swal.fire('Deleted!', 'Event and timesheets deleted.', 'success');
+
                 });
               }
             });
