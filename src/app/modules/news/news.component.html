@@ -38,9 +38,18 @@
 
     <!-- Reacciones -->
     <div class="flex items-center gap-3 mt-3">
-      <button class="text-orange-600 hover:text-white-800 flex items-center gap-1 text-sm"
+     <!-- <button class="text-orange-600 hover:text-white-800 flex items-center gap-1 text-sm"
               (click)="likePost(post.id_post)">
         <i class="bi bi-heart-fill"></i> {{ post.likes || 0 }}
+      </button>-->
+      <button class="btn btn-sm"  [disabled]="post.liked_by_me"
+        (click)="likePost(post.id_post)"
+        [ngClass]="{
+    'btn-outline-warning': !post.liked_by_me,
+    'btn-warning': post.liked_by_me
+  }"
+      >
+        👍 {{ post.likes }}
       </button>
 
       <div class="flex-grow relative">

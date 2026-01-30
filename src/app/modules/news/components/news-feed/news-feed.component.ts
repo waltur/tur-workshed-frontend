@@ -103,9 +103,11 @@ removeImage(index: number): void {
       }
     });
   }
-  likePost(postId: number) {
+
+
+ /* likePost(postId: number) {
     this.newsService.likePost(postId).subscribe(() => this.loadPosts());
-  }
+  }*/
 
 
 }

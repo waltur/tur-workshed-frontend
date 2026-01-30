@@ -3,6 +3,7 @@ import { NewsService } from './components/services/news.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/modules/auth/services/auth.service';
 declare var bootstrap: any;
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-news',
@@ -40,7 +41,7 @@ export class NewsComponent implements OnInit {
     });
   }
 
-  likePost(postId: number) {
+ /* likePost(postId: number) {
     this.newsService.likePost(postId).subscribe({
       next: (res: any) => {
         const post = this.posts.find(p => p.id_post === postId);
@@ -48,8 +49,19 @@ export class NewsComponent implements OnInit {
       },
       error: (err) => console.error('Error liking post:', err)
     });
-  }
+  }*/
 
+likePost(postId: number) {
+  this.newsService.likePost(postId).subscribe({
+    next: res => {
+      const post = this.posts.find(p => p.id_post === postId);
+      if (post) {
+        post.likes = res.likes;
+        post.liked_by_me = true;
+      }
+    }
+  });
+}
   addComment(postId: number, comment: string, parentId?: number) {
     console.log("addComment");
     if (!comment) return;

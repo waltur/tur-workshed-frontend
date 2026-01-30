@@ -19,11 +19,20 @@ export class NewsService {
    return this.http.post(`${this.baseUrl}/`, data); // ajusta ruta si necesario
  }
 
-   likePost(postId: number) {
+  /* likePost(postId: number) {
      return this.http.post(`${this.baseUrl}/${postId}/like`, {});
    }
-
+   */
+   likePost(idPost: number) {
+     return this.http.post<{ likes: number }>(
+       `${this.baseUrl}/${idPost}/like`,
+       {}
+     );
+   }
    addComment(postId: number, comment: string, id_contact: number, parentId?: number) {
      return this.http.post(`${this.baseUrl}/${postId}/comment`, { comment, id_contact,parentId });
    }
-}
+
+
+ }
+
