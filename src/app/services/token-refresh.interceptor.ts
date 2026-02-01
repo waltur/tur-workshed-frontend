@@ -18,16 +18,37 @@ export class TokenRefreshInterceptor implements HttpInterceptor {
    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
      const token = this.authService.getToken();
      const authReq = token ? this.addToken(req, token) : req;
-
-     return next.handle(authReq).pipe(
+      if (req.url.includes('/auth/refresh')) {
+        this.authService.logout(true);
+        return throwError(() => new Error('Refresh token expired'));
+      }
+           return next.handle(authReq).pipe(
        catchError(error => {
-         if (error instanceof HttpErrorResponse && error.status === 401) {
-           return this.handle401Error(req, next);
-         }
+        if (
+          error instanceof HttpErrorResponse &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          return this.handleAuthError(req, next, error.status);
+        }
          return throwError(() => error);
        })
      );
    }
+ private handleAuthError(
+   req: HttpRequest<any>,
+   next: HttpHandler,
+   status: number
+ ) {
+   // 403 = token válido pero sin permisos → logout directo
+   if (status === 403) {
+     this.authService.logout(true);
+     return throwError(() => new Error('Session expired'));
+   }
+
+   // 401 = token expirado → intentar refresh
+   return this.handle401Error(req, next);
+ }
+
 
    private addToken(req: HttpRequest<any>, token: string) {
      return req.clone({

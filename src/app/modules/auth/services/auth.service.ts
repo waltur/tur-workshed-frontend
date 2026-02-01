@@ -107,6 +107,19 @@ login(email: string, password: string): Observable<{ accessToken: string; refres
       }
     this.router.navigate(['/login']);
   }
+ /* logout(showMessage = false) {
+    localStorage.clear();
+
+    if (showMessage) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session expired',
+        text: 'Please log in again'
+      });
+    }
+
+    this.router.navigate(['/login']);
+  }*/
 
   isLoggedIn(): boolean {
     return !!localStorage.getItem(this.tokenKey);
