@@ -629,7 +629,7 @@ const eventDuration = eventEnd.getTime() - eventStart.getTime();
 
 
 // 👉 duración fija (1 hora por ahora)
-const DURATION_MS = 60 * 60 * 1000;
+//const DURATION_MS = 60 * 60 * 1000;
 
 // 👉 rango de recurrencia (fecha SOLA, sin hora)
 const rangeStart = new Date(this.newEvent.start);
@@ -637,6 +637,18 @@ let rangeEnd = this.newEvent.end
   ? new Date(this.newEvent.end)
   : new Date(this.newEvent.start);
 rangeEnd.setHours(23, 59, 59, 999);
+
+const start = new Date(this.newEvent.start);
+const end = new Date(this.newEvent.end);
+
+let diffHours = end.getHours() - start.getHours();
+let diffMinutes = end.getMinutes() - start.getMinutes();
+
+const DURATION_MS =
+  (diffHours * 60 + diffMinutes) * 60 * 1000;
+
+console.log('DURATION_MS', DURATION_MS);
+
 if (!this.newEvent.end) {
   if (this.recurrence.frequency === 'monthly') {
     rangeEnd.setMonth(rangeEnd.getMonth() + 3);
