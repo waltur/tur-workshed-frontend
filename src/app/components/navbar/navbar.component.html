@@ -58,15 +58,17 @@
   <div *ngIf="isMenuOpen" class="md:hidden bg-white border-t shadow px-6 py-4 space-y-4 text-sm">
 
     <a routerLink="/" (click)="closeMenu()" class="mobile-link btn-secondary">Home</a>
-    <a routerLink="/news" (click)="closeMenu()" class="mobile-link btn-secondary">Community News</a>
-    <a routerLink="/groups/listGroup" (click)="closeMenu()" class="mobile-link btn-secondary">What We Do</a>
+    <a routerLink="/news" (click)="closeMenu()" class="mobile-link btn-secondary">Community</a>
+    <a routerLink="/groups/listGroup" (click)="closeMenu()" class="mobile-link btn-secondary">Activities</a>
    <!-- <a routerLink="/groups/calendar" (click)="closeMenu()" class="mobile-link btn-secondary">Events</a>-->
-
+    <a *ngIf="isAdmin()" routerLink="/admin"
+       routerLinkActive="text-pink-600 font-semibold underline"
+       class="mobile-link btn-secondary">Admin</a>
     <a *ngIf="authService.isLoggedIn()"
        routerLink="/dashboard"
        (click)="closeMenu()"
        class="mobile-link btn-secondary">
-      My Space
+      My Portal
     </a>
 
     <a *ngIf="!authService.isLoggedIn()"
@@ -78,7 +80,7 @@
 
     <button *ngIf="authService.isLoggedIn()"
             (click)="logout(); closeMenu()"
-            class="btn-secondary w-full">
+            class="btn-secondary">
       Logout
     </button>
 

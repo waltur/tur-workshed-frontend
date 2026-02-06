@@ -39,7 +39,7 @@ showRegistrationMessage() {
     this.registrationMessage = false;
   }, 8000);
 }
-submit(): void {
+/*submit(): void {
   this.loading = true;
   this.loginError = '';
   console.log("login");
@@ -99,7 +99,7 @@ submit(): void {
               <strong><a href="/resend-verification">Resend verification email</a></strong>
             `,
           });*/
-          return;
+      /*    return;
         }
 
         if (error.status === 408) {
@@ -115,6 +115,55 @@ submit(): void {
           title: 'Login Failed',
           text: message
         });
+      }
+    });
+}*/
+submit(): void {
+  this.loading = true;
+
+  if (this.loginForm.invalid) {
+    this.loginForm.markAllAsTouched();
+    this.loading = false;
+    Swal.fire('Login Failed', 'Please fill in all required fields.', 'error');
+    return;
+  }
+
+  const { email, password } = this.loginForm.value;
+
+  this.authService.login(email, password)
+    .pipe(finalize(() => this.loading = false))
+    .subscribe({
+      next: () => {
+        // ✅ SOLO AQUÍ navegas (login exitoso)
+
+        const roles = this.authService.getUserRoles();
+
+        if (roles.includes('Admin')) {
+          this.router.navigate(['/admin']);
+        }
+        else if (roles.includes('Staff')) {
+          this.router.navigate(['/dashboard']);
+        }
+        else if (roles.includes('Volunteer')) {
+          this.router.navigate(['/volunteers']);
+        }
+        else {
+          this.router.navigate(['/']);
+        }
+      },
+
+      error: (error) => {
+        // ❌ aquí NO se navega
+        let message = 'Invalid email or password.';
+
+        if (error.status === 403) {
+          message = 'Please verify your email before logging in.';
+        }
+        else if (error.status === 0) {
+          message = 'Unable to connect to the server.';
+        }
+
+        Swal.fire('Login Failed', message, 'error');
       }
     });
 }
