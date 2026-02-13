@@ -26,6 +26,12 @@ export class AdminService {
   activateUser(id: number): Observable<any> {
     return this.http.patch(`${this.apiUrl}/users/${id}/activate`, {});
   }
+  notVerifiedMail(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}/notVerifiedMail`, {});
+  }
+  verifiedMail(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}/verifiedMail`, {});
+  }
     getUserById(id: number): Observable<any> {
       return this.http.get(`${this.apiUrl}/users/${id}`);
     }

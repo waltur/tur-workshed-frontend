@@ -62,6 +62,48 @@ export class UserListComponent implements OnInit {
      }
    });
  }
+   notVerifiedMail(id: number): void {
+     Swal.fire({
+       title: 'Are you sure?',
+       text: 'This user will be deactivated.',
+       icon: 'warning',
+       showCancelButton: true,
+       confirmButtonText: 'Yes, deactivate',
+       cancelButtonText: 'Cancel'
+     }).then(result => {
+       if (result.isConfirmed) {
+         this.adminService.notVerifiedMail(id).subscribe({
+           next: () => {
+             this.users = this.users.map(user =>
+               user.id_user === id ? { ...user, is_verified: false } : user
+             );
+             Swal.fire('Not verified', 'The mail has been not verified.', 'success');
+           },
+           error: () => Swal.fire('Error', 'Failed to not verified mail.', 'error')
+         });
+       }
+     });
+   }
+  verifiedMail(id: number): void {
+    Swal.fire({
+      title: 'Verified Mail?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, verified'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.adminService.verifiedMail(id).subscribe({
+          next: () => {
+            this.users = this.users.map(user =>
+              user.id_user === id ? { ...user, is_verified: true } : user
+            );
+            Swal.fire('Verified', 'The mail is now verified.', 'success');
+          },
+          error: () => Swal.fire('Error', 'Could not verified mail.', 'error')
+        });
+      }
+    });
+  }
   get filteredUsers(): any[] {
     console.log("filteredUsers");
     if (this.filter === 'active') {
