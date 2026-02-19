@@ -43,6 +43,9 @@ export class GroupService {
   deleteGroup(id: number) {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+cancelBooking(eventId: number) {
+  return this.http.delete( `${this.apiUrl}/${eventId}/booking`);
+}
 // Obtener miembros de un grupo
 getGroupMembers(groupId: number) {
   return this.http.get<any[]>(`${this.apiUrl}/${groupId}/members`);

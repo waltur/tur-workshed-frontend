@@ -168,38 +168,48 @@
   <!-- REGISTRO DE USUARIO -->
   <div *ngIf="isMember()" class="mt-4 border-t pt-3">
 
-    <!-- NO REGISTRADO -->
-   <div class="text-center mt-4">
-    <button
-      *ngIf="!selectedEvent.meta?.registration_roles?.includes('Attendant')"
-      (click)="registerAsAttendee(selectedEvent)"
-      class="bg-green-600 text-white px-3 py-1 rounded text-sm">
-      Book
-    </button>
+    <div class="text-center mt-4">
 
-    <!-- REGISTRADO / NO CONFIRMADO -->
-    <div
-      *ngIf="selectedEvent.meta?.registration_roles?.includes('Attendant')
-           && !selectedEvent.meta?.attended"
-      class="text-yellow-600 text-sm mt-2">
-      Booking confirmed...
-    </div>
+      <!-- NO REGISTRADO -->
+      <button
+        *ngIf="!selectedEvent.meta?.registration_roles?.includes('Attendant')"
+        (click)="registerAsAttendee(selectedEvent)"
+        class="bg-green-600 text-white px-3 py-1 rounded text-sm">
+        Book
+      </button>
 
-    <!-- CONFIRMADO / SIN FIRMA -->
-    <button
-      *ngIf="selectedEvent.meta?.attended && !selectedEvent.meta?.signature"
-      (click)="openSignatureModal(selectedEvent)"
-      class="bg-indigo-600 text-white px-3 py-1 rounded text-sm mt-2">
-      Confirm Attendance (Signature)
-    </button>
+      <!-- REGISTRADO / NO ASISTIDO -->
+      <div
+        *ngIf="selectedEvent.meta?.registration_roles?.includes('Attendant')
+           && !selectedEvent.meta?.attended">
 
-    <!-- YA FIRMÓ -->
-    <div
-      *ngIf="selectedEvent.meta?.signature"
-      class="text-green-600 text-sm mt-2">
-      Attendance Confirmed
-    </div>
+        <div class="text-yellow-600 text-sm mt-2">
+          Booking confirmed
+        </div>
 
+        <!-- 🔥 NUEVO BOTÓN DESBOOK -->
+        <button
+          (click)="cancelBooking(selectedEvent)"
+          class="bg-red-600 text-white px-3 py-1 rounded text-sm mt-2">
+          Cancel Booking
+        </button>
+
+      </div>
+
+      <!-- ASISTIÓ / SIN FIRMA -->
+      <button
+        *ngIf="selectedEvent.meta?.attended && !selectedEvent.meta?.signature"
+        (click)="openSignatureModal(selectedEvent)"
+        class="bg-indigo-600 text-white px-3 py-1 rounded text-sm mt-2">
+        Confirm Attendance (Signature)
+      </button>
+
+      <!-- YA FIRMÓ -->
+      <div
+        *ngIf="selectedEvent.meta?.signature"
+        class="text-green-600 text-sm mt-2">
+        Attendance Confirmed
+      </div>
 
     </div>
   </div>

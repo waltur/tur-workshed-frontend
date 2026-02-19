@@ -102,6 +102,7 @@ loadingEvents = false;
 selectedDay: Date | null = null;
 selectedDayEvents: CalendarEvent[] = [];
 events: CalendarEvent<any>[] = [];
+isLoadingBooking = false;
 
 
 
@@ -122,6 +123,28 @@ toggleWeekDay(day: number) {
     this.recurrence.daysOfWeek.push(day);
   }
 }
+/*isRegistered(event: any): boolean {
+  return event.meta?.registration_roles?.includes('Attendant');
+}
+hasEventStarted(event: any): boolean {
+  const now = new Date();
+  const start = new Date(event.start);
+  return now >= start;
+}
+toggleBooking(event: any) {
+
+  if (this.hasEventStarted(event)) {
+    alert('Event already started. You cannot modify booking.');
+    return;
+  }
+
+  if (this.isRegistered(event)) {
+    this.confirmCancel(event);
+  } else {
+    this.bookEvent(event);
+  }
+}
+*/
 loadEventsByGroup(groupId: number): void {
   console.log('ENTRÓ A loadEventsByGroup', groupId);
   this.loading = true;
@@ -786,6 +809,33 @@ if (!eventCalls.length) {
     }
   });
 }
+cancelBooking(event: any) {
+  console.log("cancelBooking", event);
+    Swal.fire({
+      title: 'Confirm cancel booking',
+      text: 'Do you want to cancel your attendance at this event??',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      confirmButtonText: 'Yes, cancel me',
+      cancelButtonText: 'Cancel'
+    }).then(result => {
+        this.groupService.cancelBooking(event.meta.id_event).subscribe({
+        next: () => {
+        Swal.fire('Success', 'Cancel booking successfully', 'success');
+        // actualizar UI sin recargar
+        event.meta.registration_roles =
+        event.meta.registration_roles.filter((r: string) => r !== 'Attendant');
+
+      event.meta.attended = false;
+    },
+    error: (err) => {
+       Swal.fire('Error', 'Canceling booking', 'error');
+      console.error('Error canceling booking', err);
+    }
+  })});
+}
+
 generateMonthlyNthWeekdayDates(
   rangeStart: Date,
   rangeEnd: Date,
