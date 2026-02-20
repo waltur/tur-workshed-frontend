@@ -1372,7 +1372,7 @@ onSignatureCompleted(dataUrl: string, event: any, modal: any) {
 
   if (!contactId || !id_event) {
     console.error('Invalid contactId or id_event');
-    Swal.fire('Error', 'No se puede confirmar asistencia: faltan datos', 'error');
+    Swal.fire('Error', 'Attendance cannot be confirmed: data is missing', 'error');
     return;
   }
 
@@ -1395,8 +1395,8 @@ onSignatureCompleted(dataUrl: string, event: any, modal: any) {
      this.refresh.next();
 
      Swal.fire(
-       'Asistencia confirmada',
-       'Firma registrada con éxito',
+       'Confirmed attendance',
+       'Signature successfully registered',
        'success'
      );
 
