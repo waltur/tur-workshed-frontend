@@ -140,6 +140,10 @@ updateSeries(seriesId: string, eventData: any): Observable<any> {
     eventData
   );
 }
-
+getMyEventsCount(contactId: number) {
+  return this.http.get<{ total: number }>(
+    `${this.eventUrl}/my-events-count?contactId=${contactId}`
+  );
+}
 
 }

@@ -1,11 +1,33 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../../../auth/services/auth.service';
 import Swal from 'sweetalert2';
+import { GroupService } from '../../../groups/services/group.service';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate
+} from '@angular/animations';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
+  animations: [
+    trigger('expandCollapse', [
+      state('void', style({
+        height: '0px',
+        opacity: 0,
+        overflow: 'hidden'
+      })),
+      state('*', style({
+        height: '*',
+        opacity: 1
+      })),
+      transition('void <=> *', animate('250ms ease-in-out'))
+    ])
+  ]
 })
 export class DashboardComponent {
   roles: string[] = [];
@@ -15,7 +37,27 @@ export class DashboardComponent {
     userInfoText = '';
     canChangePassword = false;
 
-    constructor(private authService: AuthService) {
+   /*  */
+   myEvents: any[] = [];
+   nextEvent: any = null;
+
+   completedEvents = 0;
+   upcomingEvents = 0;
+   missedEvents = 0;
+
+   attendanceRate = 0;
+   activeTab: 'completed' | 'upcoming' | 'missed' | null = null;
+
+   completedList: any[] = [];
+   upcomingList: any[] = [];
+   missedList: any[] = [];
+   showAll = false;
+   isLoading = true;
+   selectedYear: number | null = null;
+   selectedGroup: string | null = null;
+   /* */
+
+    constructor(private authService: AuthService,private groupService: GroupService ) {
       //this.roles = this.authService.getUserRoles();
       const userInfo = this.authService.getUserInfo();
           if (userInfo) {
@@ -26,6 +68,7 @@ export class DashboardComponent {
           }
     }
  ngOnInit(): void {
+   this.loadMyEvents();
    const user = this.authService.getUserInfo();
    if (user) {
      this.userInfoText =
@@ -36,6 +79,114 @@ export class DashboardComponent {
   this.canChangePassword = this.roles.includes('Volunteer') || this.roles.includes('Member');
  }
 
+/*loadMyEventsCount() {
+  const contactId = this.authService.getContactId();
+  if (!contactId) return;
+
+  this.groupService.getMyEventsCount(contactId)
+    .subscribe(res => {
+      this.myEventsCount = res.total;
+    });
+}*/
+pageSize = 10;
+currentPage = 1;
+
+get paginatedList() {
+  const list =
+    this.activeTab === 'completed' ? this.completedList :
+    this.activeTab === 'upcoming' ? this.upcomingList :
+    this.missedList;
+
+  const start = (this.currentPage - 1) * this.pageSize;
+  return list.slice(start, start + this.pageSize);
+}
+get filteredByYear() {
+  if (!this.selectedYear) return this.myEvents;
+
+  return this.myEvents.filter(e =>
+    new Date(e.start).getFullYear() === this.selectedYear
+  );
+}
+get totalPages() {
+  const list =
+    this.activeTab === 'completed' ? this.completedList :
+    this.activeTab === 'upcoming' ? this.upcomingList :
+    this.missedList;
+
+  return Math.ceil(list.length / this.pageSize);
+}
+get visibleList() {
+  const list =
+    this.activeTab === 'completed' ? this.completedList :
+    this.activeTab === 'upcoming' ? this.upcomingList :
+    this.missedList;
+
+  if (!this.showAll) {
+    return list.slice(0, 5);
+  }
+
+  return list;
+}
+get availableGroups() {
+  return [...new Set(this.myEvents.map(e => e.group_name))];
+}
+
+get fullyFilteredEvents() {
+  let list = this.filteredByYear;
+
+  if (this.selectedGroup) {
+    list = list.filter(e => e.group_name === this.selectedGroup);
+  }
+
+  return list;
+}
+loadMyEvents() {
+   const contactId = this.authService.getContactId();
+  if (!contactId) return;
+
+  this.groupService.getAllEvents(contactId)
+    .subscribe(events => {
+     this.isLoading = false;
+      const now = new Date();
+
+      this.myEvents = events
+        .filter(e => e.registration_roles?.length > 0)
+        .map(e => {
+          const eventDate = new Date(e.start);
+
+          let status: 'completed' | 'upcoming' | 'missed';
+
+          if (e.attended) {
+            status = 'completed';
+          } else if (eventDate > now) {
+            status = 'upcoming';
+          } else {
+            status = 'missed';
+          }
+
+          return { ...e, status };
+        })
+        .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+    this.completedList = this.myEvents.filter(e => e.status === 'completed');
+    this.upcomingList = this.myEvents.filter(e => e.status === 'upcoming');
+    this.missedList = this.myEvents.filter(e => e.status === 'missed');
+
+    this.completedEvents = this.completedList.length;
+    this.upcomingEvents = this.upcomingList.length;
+    this.missedEvents = this.missedList.length;
+
+      this.nextEvent = this.myEvents.find(e => e.status === 'upcoming') || null;
+
+      const totalPast = this.completedEvents + this.missedEvents;
+      this.attendanceRate = totalPast > 0
+        ? Math.round((this.completedEvents / totalPast) * 100)
+        : 100;
+    });
+}
+toggleTab(tab: 'completed' | 'upcoming' | 'missed') {
+  this.activeTab = this.activeTab === tab ? null : tab;
+}
     isAdmin(): boolean {
       return this.roles.includes('Admin');
     }
