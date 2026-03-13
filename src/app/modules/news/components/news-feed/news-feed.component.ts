@@ -17,6 +17,8 @@ export class NewsFeedComponent implements OnInit {
    previewUrl: string | null = null;
    previewUrls: string[] = [];
    loading:boolean=false;
+   selectedFiles: File[] = [];
+   previewFiles: { url: string; type: 'image' | 'video' }[] = [];
 
 
   constructor(private newsService: NewsService) {}
@@ -32,40 +34,61 @@ export class NewsFeedComponent implements OnInit {
     });
   }
 onFilesSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
+  console.log("onFilesSelected");
+    const input = event.target as HTMLInputElement;
   if (!input.files || input.files.length === 0) return;
 
-  const allowedTypes = ['image/jpeg', 'image/png'];
-  const maxSize = 2 * 1024 * 1024;
+  const allowedImageTypes = ['image/jpeg', 'image/png'];
+  const allowedVideoTypes = ['video/mp4', 'video/webm'];
+
+  const maxImageSize = 2 * 1024 * 1024;    // 2MB
+  const maxVideoSize = 50 * 1024 * 1024;   // 50MB
 
   Array.from(input.files).forEach((file) => {
-    if (!allowedTypes.includes(file.type)) {
-      Swal.fire('Invalid Format', `${file.name} is not JPG or PNG.`, 'warning');
+
+    const isImage = allowedImageTypes.includes(file.type);
+    const isVideo = allowedVideoTypes.includes(file.type);
+
+    if (!isImage && !isVideo) {
+      alert(`${file.name} format not supported.`);
       return;
     }
 
-    if (file.size > maxSize) {
-      Swal.fire('Too Large', `${file.name} exceeds 2MB.`, 'warning');
+    if (isImage && file.size > maxImageSize) {
+      alert(`${file.name} exceeds 2MB.`);
       return;
     }
 
-    this.selectedImages.push(file);
+    if (isVideo && file.size > maxVideoSize) {
+      alert(`${file.name} exceeds 50MB.`);
+      return;
+    }
+
+    this.selectedFiles.push(file);
 
     const reader = new FileReader();
     reader.onload = () => {
-      this.previewUrls.push(reader.result as string);
+      this.previewFiles.push({
+        url: reader.result as string,
+        type: isVideo ? 'video' : 'image'
+      });
     };
+
     reader.readAsDataURL(file);
   });
 
-  // Limpiar el input para permitir volver a seleccionar la misma imagen
   input.value = '';
+}
+removeFile(index: number): void {
+  this.selectedFiles.splice(index, 1);
+  this.previewFiles.splice(index, 1);
 }
 removeImage(index: number): void {
   this.selectedImages.splice(index, 1);
   this.previewUrls.splice(index, 1);
 }
   createPost(): void {
+    console.log("createPost");
      this.loading = true;
     const { title, description } = this.newPost;
 
@@ -85,7 +108,7 @@ removeImage(index: number): void {
     formData.append('title', title);
     formData.append('description', description);
 
-    this.selectedImages.forEach((image, index) => {
+    this.selectedFiles.forEach((image, index) => {
       formData.append('images', image); // El backend debe aceptar 'images'
     });
 

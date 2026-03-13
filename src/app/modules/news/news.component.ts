@@ -62,6 +62,13 @@ likePost(postId: number) {
     }
   });
 }
+isImage(url: string): boolean {
+  return /\.(jpg|jpeg|png|gif)$/i.test(url);
+}
+
+isVideo(url: string): boolean {
+  return /\.(mp4|webm|mov)$/i.test(url);
+}
   addComment(postId: number, comment: string, parentId?: number) {
     console.log("addComment");
     if (!comment) return;
