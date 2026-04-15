@@ -10,6 +10,8 @@ import { forkJoin } from 'rxjs';
 import { parse } from 'date-fns';
 import { map } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
+import { SocketService } from '../../../../services/socket.service';
+
 
 
 interface EventTask {
@@ -103,10 +105,11 @@ selectedDay: Date | null = null;
 selectedDayEvents: CalendarEvent[] = [];
 events: CalendarEvent<any>[] = [];
 isLoadingBooking = false;
+private reloadTimeout: any;
 
 
 
-constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService) {}
+constructor(private modalService: NgbModal, private groupService:GroupService, private route: ActivatedRoute,private authService: AuthService, private socketService: SocketService) {}
 
 
   ngOnInit(): void {
@@ -114,6 +117,7 @@ constructor(private modalService: NgbModal, private groupService:GroupService, p
     this.loadAllEvents();
     this.isLogged = this.authService.isLoggedIn();
     this.isAdmin = this.authService.isAdmin();
+    this.listenToSocketEvents();
   }
 toggleWeekDay(day: number) {
   const idx = this.recurrence.daysOfWeek.indexOf(day);
@@ -122,6 +126,13 @@ toggleWeekDay(day: number) {
   } else {
     this.recurrence.daysOfWeek.push(day);
   }
+}
+private reloadEventsOptimized() {
+  clearTimeout(this.reloadTimeout);
+
+  this.reloadTimeout = setTimeout(() => {
+    this.loadAllEvents();
+  }, 300); // agrupa eventos en 300ms
 }
 /*isRegistered(event: any): boolean {
   return event.meta?.registration_roles?.includes('Attendant');
@@ -152,7 +163,6 @@ loadEventsByGroup(groupId: number): void {
   this.groupService.getEventsByGroup(groupId).subscribe({
     next: (eventsData: any[]) => {
 
-      // ✅ CASO 1: No hay eventos
       if (!eventsData || eventsData.length === 0) {
         this.events = [];
         this.refresh.next();
@@ -160,49 +170,31 @@ loadEventsByGroup(groupId: number): void {
         return;
       }
 
-      // ✅ CASO 2: Hay eventos
-      const eventCalls = eventsData.map(event => {
-        return this.groupService.getGroupMembers(event.id_group).pipe(
-          map((members: any[]) => {
-            const coordinator = members.find(
-              (m: any) => m.name_role === 'Coordinator'
-            );
-
-            return {
-              title: event.title,
-              start: this.parseDateTimeRaw(event.start),
-              end: this.parseDateTimeRaw(event.end),
-              meta: {
-                id_event: event.id_event,
-                description: event.description,
-                group: event.group_name || '',
-                location: event.location,
-                id_group: event.id_group,
-                tasks: event.tasks || [],
-                coordinator: coordinator?.name || 'N/A',
-              },
-              color: {
-                primary: '#EA580C',
-                secondary: '#F97316'
-              },
-              allDay: false
-            };
-          })
-        );
-      });
-
-      forkJoin(eventCalls).subscribe({
-        next: (events: CalendarEvent[]) => {
-          this.events = events;
-          this.refresh.next();
-          this.loading = false;
+      const events: CalendarEvent[] = eventsData.map(event => ({
+        title: event.title,
+        start: this.parseDateTimeRaw(event.start),
+        end: this.parseDateTimeRaw(event.end),
+        meta: {
+          id_event: event.id_event,
+          description: event.description,
+          group: event.group_name || '',
+          location: event.location,
+          id_group: event.id_group,
+          tasks: event.tasks || [],
+          coordinator: event.coordinator || 'N/A',
         },
-        error: err => {
-          console.error('Error building events:', err);
-          this.loading = false;
-        }
-      });
+        color: {
+          primary: '#EA580C',
+          secondary: '#F97316'
+        },
+        allDay: false
+      }));
+
+      this.events = events;
+      this.refresh.next();
+      this.loading = false;
     },
+
     error: (err) => {
       console.error('Error loading events for group:', err);
       this.loading = false;
@@ -214,6 +206,29 @@ shouldShowSignature(e: CalendarEvent): boolean {
   return e.meta?.registration_roles?.includes('Attendant') && !e.meta?.signature;
 }
 
+
+listenToSocketEvents() {
+
+  this.socketService.listen('eventCreated')
+    .subscribe(() => {
+      this.reloadEventsOptimized();
+    });
+
+  this.socketService.listen('eventDeleted')
+    .subscribe(() => {
+      this.reloadEventsOptimized();
+    });
+
+  this.socketService.listen('eventUpdated')
+    .subscribe(() => {
+      this.reloadEventsOptimized();
+    });
+
+  this.socketService.listen('eventRegistered')
+    .subscribe(() => {
+      this.reloadEventsOptimized();
+    });
+}
 saveSignature(dataUrl: string, event: CalendarEvent) {
   const contactId = this.authService.getContactId();
   const id_event = event.meta.id_event;
@@ -258,13 +273,14 @@ prevMonth() {
   this.viewDate = prev;
 }
 loadAllEvents(): void {
+  console.log("loadAllEvents");
   this.loadingEvents = true;
+
   const contactId = this.authService.getContactId() ?? undefined;
 
   this.groupService.getAllEvents(contactId).subscribe({
     next: (eventsData: any[]) => {
 
-      // 🔥 CASO CLAVE: no hay eventos
       if (!eventsData || eventsData.length === 0) {
         this.events = [];
         this.refresh.next();
@@ -272,49 +288,32 @@ loadAllEvents(): void {
         return;
       }
 
-      const eventCalls = eventsData.map(event =>
-        this.groupService.getGroupMembers(event.id_group).pipe(
-          map((members: any[]) => {
-            const coordinator = members.find(
-              (m: any) => m.name_role === 'Coordinator'
-            );
-
-            return {
-              title: event.title,
-              start: this.parseDateTimeRaw(event.start),
-              end: this.parseDateTimeRaw(event.end),
-              meta: {
-                id_event: event.id_event,
-                description: event.description,
-                group: event.group_name || '',
-                registration_roles: event.registration_roles || [],
-                location: event.location,
-                id_group: event.id_group,
-                tasks: event.tasks || [],
-                coordinator: coordinator?.name || 'N/A',
-                attended: event.attended || false,
-                signature: event.signature || null,
-              },
-              color: {
-                primary: '#10B981',
-                secondary: '#D1FAE5'
-              },
-              allDay: false
-            };
-          })
-        )
-      );
-
-      forkJoin(eventCalls).subscribe({
-        next: (events: CalendarEvent[]) => {
-          this.events = events;
-          this.refresh.next();
-          this.loadingEvents = false;
+      const events: CalendarEvent[] = eventsData.map(event => ({
+        title: event.title,
+        start: this.parseDateTimeRaw(event.start),
+        end: this.parseDateTimeRaw(event.end),
+        meta: {
+          id_event: event.id_event,
+          description: event.description,
+          group: event.group_name || '',
+          registration_roles: event.registration_roles || [],
+          location: event.location,
+          id_group: event.id_group,
+          tasks: event.tasks || [],
+          coordinator: event.coordinator || 'N/A', // 🔥 AQUÍ ESTÁ LA MAGIA
+          attended: event.attended || false,
+          signature: event.signature || null,
         },
-        error: () => {
-          this.loadingEvents = false;
-        }
-      });
+        color: {
+          primary: '#10B981',
+          secondary: '#D1FAE5'
+        },
+        allDay: false
+      }));
+
+      this.events = events;
+      this.refresh.next();
+      this.loadingEvents = false;
     },
 
     error: () => {
@@ -323,6 +322,7 @@ loadAllEvents(): void {
     }
   });
 }
+
 toggleDay(day: number): void {
    if (this.recurrence.frequency === 'monthly') {
       const idx = this.recurrence.monthlyDaysOfWeek.indexOf(day);
@@ -510,25 +510,7 @@ toggleMonthlyDay(day: number) {
     this.recurrence.monthlyDaysOfWeek.push(day);
   }
 }
-generateRecurringDates(): { start: Date; end: Date | null }[] {
-  const baseStart = new Date(this.newEvent.start);
-  const baseEnd = this.newEvent.end ? new Date(this.newEvent.end) : null;
 
-  if (this.recurrence.frequency === 'once') {
-    return [{ start: baseStart, end: baseEnd }];
-  }
-
-  /*if (this.recurrence.frequency === 'weekly') {
-    return this.generateWeeklyDates();
-  }*/
-
-  if (this.recurrence.frequency === 'monthly') {
-    // 👇 luego conectamos aquí la lógica mensual limpia
-    return [];
-  }
-
-  return [];
-}
 generateWeeklyDates(
   rangeStart: Date,
   rangeEnd: Date,
@@ -656,9 +638,12 @@ const eventDuration = eventEnd.getTime() - eventStart.getTime();
 
 // 👉 rango de recurrencia (fecha SOLA, sin hora)
 const rangeStart = new Date(this.newEvent.start);
-let rangeEnd = this.newEvent.end
+/*let rangeEnd = this.newEvent.end
   ? new Date(this.newEvent.end)
   : new Date(this.newEvent.start);
+rangeEnd.setHours(23, 59, 59, 999);*/
+
+let rangeEnd = new Date(this.newEvent.start);
 rangeEnd.setHours(23, 59, 59, 999);
 
 const start = new Date(this.newEvent.start);
@@ -667,12 +652,20 @@ const end = new Date(this.newEvent.end);
 let diffHours = end.getHours() - start.getHours();
 let diffMinutes = end.getMinutes() - start.getMinutes();
 
-const DURATION_MS =
-  (diffHours * 60 + diffMinutes) * 60 * 1000;
+/*const DURATION_MS =
+  (diffHours * 60 + diffMinutes) * 60 * 1000;*/
+
+  let DURATION_MS =
+    (diffHours * 60 + diffMinutes) * 60 * 1000;
+
+  // 🔥 fallback mínimo 1 hora
+  if (DURATION_MS <= 0) {
+    DURATION_MS = 60 * 60 * 1000;
+  }
 
 console.log('DURATION_MS', DURATION_MS);
 
-if (!this.newEvent.end) {
+//if (!this.newEvent.end) {
   if (this.recurrence.frequency === 'monthly') {
     rangeEnd.setMonth(rangeEnd.getMonth() + 3);
   }
@@ -680,7 +673,7 @@ if (!this.newEvent.end) {
   if (this.recurrence.frequency === 'weekly') {
     rangeEnd.setMonth(rangeEnd.getMonth() + 1);
   }
-}
+//}
 
 
 
@@ -1184,7 +1177,7 @@ deleteEvent(eventId: number): void {
     confirmButtonText: 'Yes, delete it!'
   }).then((result) => {
     if (result.isConfirmed) {
-      this.groupService.deleteEvent(eventId).subscribe({
+      this.groupService.deleteEvent(eventId, true).subscribe({
         next: () => {
           this.loadAllEvents();
           this.modalService.dismissAll();

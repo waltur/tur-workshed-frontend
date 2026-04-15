@@ -111,8 +111,13 @@ createEventTask(task: {
 getTasksByEvent(id_event: number) {
   return this.http.get<any[]>(`${this.tasksUrl}/events/${id_event}`);
 }
-deleteEvent(id: number): Observable<any> {
+/*deleteEvent(id: number): Observable<any> {
   return this.http.delete(`${this.eventUrl}/events/${id}`);
+}*/
+deleteEvent(id: number, cascade: boolean = false) {
+  return this.http.delete(
+    `${this.apiUrl}/events/${id}?cascade=${cascade}`
+  );
 }
 updateEvent(id: number, eventData: any): Observable<any> {
   return this.http.put(`${this.eventUrl}/events/${id}`, eventData);

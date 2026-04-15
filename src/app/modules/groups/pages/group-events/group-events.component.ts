@@ -19,6 +19,7 @@ export class GroupEventsComponent implements OnInit {
   }
 
   loadEvents() {
+    console.log("loadEvents");
     this.groupService.getEventsByGroup(this.groupId).subscribe(res => this.events = res);
   }
 
