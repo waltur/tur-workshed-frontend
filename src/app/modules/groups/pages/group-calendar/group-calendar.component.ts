@@ -1166,57 +1166,73 @@ confirmDeleteEvent(event: any): void {
 
 }
 
-deleteEvent(eventId: number): void {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: 'This will permanently delete the event.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.groupService.deleteEvent(eventId, true).subscribe({
-        next: () => {
-          this.loadAllEvents();
-          this.modalService.dismissAll();
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: 'The event has been deleted.'
-          });
-        },
-        error: (error) => {
-          if (error.status === 409) {
-            Swal.fire({
-              icon: 'warning',
-              title: 'Associated timesheets found',
-              text: 'This event has timesheets linked to it. Do you want to delete everything?',
-              showCancelButton: true,
-              confirmButtonText: 'Yes, delete all',
-              cancelButtonText: 'Cancel'
-            }).then(confirmCascade => {
-              if (confirmCascade.isConfirmed) {
-                // Llama a delete cascade
-                this.groupService.deleteEventCascade(eventId).subscribe(() => {
-                  this.loadAllEvents();
-                  this.modalService.dismissAll();
-                  Swal.fire('Deleted!', 'Event and timesheets deleted.', 'success');
+deleteEvent(eventId: number, event?: any): void {
 
-                });
-              }
+  Swal.fire({
+    title: 'Delete event',
+    text: 'What do you want to delete?',
+    icon: 'question',
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: 'Only this event',
+    denyButtonText: 'Entire series',
+    cancelButtonText: 'Cancel'
+  }).then(result => {
+
+    if (result.isDismissed) return;
+
+    const deleteSeries = result.isDenied;
+
+    // 🔥 función reutilizable
+    const executeDelete = (cascade: boolean) => {
+      this.groupService.deleteEvent(eventId, cascade, deleteSeries)
+        .subscribe({
+          next: () => {
+            this.loadAllEvents();
+            this.modalService.dismissAll();
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: deleteSeries
+                ? 'Series deleted successfully'
+                : 'Event deleted successfully'
             });
-          } else {
+          },
+          error: (error) => {
+
+            // 🔥 CASO: relaciones existentes
+            if (error.status === 409) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Associated data found',
+                text: deleteSeries
+                  ? 'This series has related data. Delete everything?'
+                  : 'This event has related data. Delete everything?',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete all',
+                cancelButtonText: 'Cancel'
+              }).then(confirmCascade => {
+                if (confirmCascade.isConfirmed) {
+                  executeDelete(true); // 🔥 cascade = true
+                }
+              });
+
+              return;
+            }
+
+            // 🔥 ERROR GENERAL
             Swal.fire({
               icon: 'error',
               title: 'Error!',
               text: 'There was a problem deleting the event.'
             });
           }
-        }
-      });
-    }
+        });
+    };
+
+    // 🚀 PRIMER INTENTO SIN CASCADE
+    executeDelete(false);
   });
 }
 editEvent(id_event: number): void {

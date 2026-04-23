@@ -114,10 +114,18 @@ getTasksByEvent(id_event: number) {
 /*deleteEvent(id: number): Observable<any> {
   return this.http.delete(`${this.eventUrl}/events/${id}`);
 }*/
-deleteEvent(id: number, cascade: boolean = false) {
-  return this.http.delete(
-    `${this.apiUrl}/events/${id}?cascade=${cascade}`
-  );
+deleteEvent(
+  eventId: number,
+  cascade: boolean = false,
+  deleteSeries: boolean = false
+) {
+  let url = `${this.eventUrl}/events/${eventId}?cascade=${cascade}`;
+
+  if (deleteSeries) {
+    url += `&deleteSeries=true`;
+  }
+
+  return this.http.delete(url);
 }
 updateEvent(id: number, eventData: any): Observable<any> {
   return this.http.put(`${this.eventUrl}/events/${id}`, eventData);
