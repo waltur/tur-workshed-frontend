@@ -2,10 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
+import { PaypalService } from '../../../../services/paypal.service';
 import { JobRoleService } from '../../services/job-role.service';
 import { Router } from '@angular/router';
 import { ImageUploadService } from '../../../../shared/services/image-upload.service';
 import Swal from 'sweetalert2';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -26,10 +28,20 @@ isVolunteer = false;
 jobRoles: any[] = [];
 selectedJobRoleIds: number[] = [];
 volunteerRoleId: number | null = null;
+memberRoleId: number | null = null;
 ageRanges = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
 wantsToVolunteerLocked: boolean = false;
 loading:boolean=false;
 photoPreview: string | null = null;
+
+
+
+paypalRendered = false;
+processingPayment = false;
+paymentCompleted = false;
+
+paypalOrderId = '';
+paypalCaptureId = '';
 
   constructor(
     private fb: FormBuilder,
@@ -37,7 +49,8 @@ photoPreview: string | null = null;
     private router: Router,
     private roleService:RoleService,
     private jobRoleService:JobRoleService,
-    private imageUpload: ImageUploadService
+    private imageUpload: ImageUploadService,
+    private paypalService: PaypalService
   ) {}
 
  ngOnInit(): void {
@@ -74,12 +87,14 @@ photoPreview: string | null = null;
    });
 
    this.isAdmin = this.authService.isAdmin();
-
    this.roleService.getRoles().subscribe({
      next: (data) => {
        this.roles = data;
        const volunteerRole = this.roles.find(role => role.role_name.toLowerCase() === 'volunteer');
-       this.volunteerRoleId = volunteerRole ? volunteerRole.id_role : null;
+              this.volunteerRoleId = volunteerRole ? volunteerRole.id_role : null;
+       const memberRole = this.roles.find(role => role.role_name.toLowerCase() === 'member');
+              this.memberRoleId = memberRole ? memberRole.id_role : null;
+
      },
      error: () => {
        this.registerError = 'Failed to load roles from server.';
@@ -89,19 +104,115 @@ photoPreview: string | null = null;
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
 }
-/*onPhotoSelected(event: Event): void {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.photoPreview = reader.result as string;
-    this.photoBase64 = this.photoPreview;  // ya en formato base64 para backend
-  };
-  reader.readAsDataURL(file);
+
+loadPaypalButtons(): void {
+
+  // Evita renderizar más de una vez
+  if (this.paypalRendered) {
+    return;
+  }
+
+  const paypal = (window as any).paypal;
+
+  if (!paypal) {
+    console.error('PayPal SDK not loaded');
+    return;
+  }
+
+  const container = document.getElementById('paypal-button-container');
+
+  if (!container) {
+    console.error('paypal-button-container not found');
+    return;
+  }
+
+  // Limpia el contenedor por si quedó algo previo
+  container.innerHTML = '';
+
+  paypal.Buttons({
+
+    createOrder: async () => {
+
+      const response = await firstValueFrom(
+        this.paypalService.createOrder(1)
+      );
+
+      return response.id;
+    },
+
+    onApprove: async (data: any) => {
+
+      try {
+
+        this.processingPayment = true;
+
+        const result = await firstValueFrom(
+          this.paypalService.captureOrder(data.orderID)
+        );
+
+        this.paypalOrderId = result.orderID;
+        this.paypalCaptureId = result.captureID;
+
+        this.paymentCompleted = true;
+        this.processingPayment = false;
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment successful',
+          text: 'Membership activated',
+          confirmButtonColor: '#e91e63'
+        });
+
+      } catch (error) {
+
+        this.processingPayment = false;
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment failed',
+          text: 'Unable to verify payment.',
+          confirmButtonColor: '#e91e63'
+        });
+
+      }
+
+    },
+
+    onCancel: () => {
+
+      Swal.fire({
+        icon: 'info',
+        title: 'Payment cancelled'
+      });
+
+    },
+
+    onError: (err: any) => {
+
+      console.error(err);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'PayPal Error',
+        text: 'An unexpected error occurred.',
+        confirmButtonColor: '#e91e63'
+      });
+
+    }
+
+  }).render('#paypal-button-container')
+    .then(() => {
+
+      this.paypalRendered = true;
+
+      console.log('PayPal Buttons Rendered');
+
+    });
+
 }
-*/
 validatePhone(control: any) {
+
   const value = control.value;
 
   // Permitir vacío (solo en emergency_contact)
@@ -159,15 +270,18 @@ submit(): void {
 
   const formValue = this.registerForm.value;
   formValue.email = formValue.email.toLowerCase();
-
+  const isMember = this.selectedRoleIds.includes(this.memberRoleId!);
   const formData = {
     ...this.registerForm.value,
     roles: this.selectedRoleIds,
-    job_roles: this.selectedJobRoleIds
+    job_roles: this.selectedJobRoleIds,
+    paypal_order_id: this.paypalOrderId,
+    paypal_capture_id: this.paypalCaptureId,
+
   };
 
   this.loading = true; // ⏳ Inicia loading
-
+  console.log(formData);
   this.authService.register(formData).subscribe({
     next: () => {
       this.loading = false; // ✅ Finaliza loading
@@ -294,7 +408,8 @@ nextStep(): void {
  if (this.step === 4) {
 
    this.registerForm.updateValueAndValidity();
-
+   const isMember = this.selectedRoleIds.includes(this.memberRoleId!);
+   console.log("isMember", isMember);
    const step4Fields = [
      'confirm_age',
      'accept_membership_policy',
@@ -321,8 +436,16 @@ nextStep(): void {
      this.markFieldsAsTouched(step4Fields);
      return;
    }
+      if (isMember) {
+        this.step = 5;
+        setTimeout(() => {
+        this.loadPaypalButtons();
+       });
 
-   this.submit();
+      } else {
+        this.submit();
+      }
+ //  this.submit();
  }
 }
 markFieldsAsTouched(fields: string[]) {
@@ -411,5 +534,6 @@ async onPhotoSelected(event: any) {
     });
   }
 }
+
 
 }
