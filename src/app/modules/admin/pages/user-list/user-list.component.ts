@@ -11,6 +11,9 @@ import Swal from 'sweetalert2';
 export class UserListComponent implements OnInit {
   users: any[] = [];
   filter: 'all' | 'active' | 'inactive' = 'all';
+  selectedUser: any = null;
+  loadingUserDetails = false;
+  loadingUser = false;
 
     constructor(private adminService: AdminService) {}
 
@@ -20,6 +23,41 @@ export class UserListComponent implements OnInit {
             });
       }
 
+
+    openUser(user: any): void {
+
+      this.loadingUser = true;
+
+      this.selectedUser = null;
+
+      this.adminService.getUserDetail(user.id_user).subscribe({
+
+        next: (data) => {
+
+          this.selectedUser = data;
+
+          this.loadingUser = false;
+
+        },
+
+        error: () => {
+
+          this.loadingUser = false;
+
+          Swal.fire(
+            'Error',
+            'Unable to load user information.',
+            'error'
+          );
+
+        }
+
+      });
+
+    }
+  closeUser(): void {
+    this.selectedUser = null;
+  }
   deactivate(id: number): void {
     Swal.fire({
       title: 'Are you sure?',
@@ -113,4 +151,20 @@ export class UserListComponent implements OnInit {
     }
     return this.users;
   }
+    copy(value: string){
+
+        navigator.clipboard.writeText(value);
+
+        Swal.fire({
+
+        toast:true,
+        position:'top-end',
+        icon:'success',
+        title:'Copied',
+        showConfirmButton:false,
+        timer:1200
+
+        });
+
+    }
 }
