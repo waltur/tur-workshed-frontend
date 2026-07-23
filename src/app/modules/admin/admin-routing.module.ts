@@ -6,6 +6,8 @@ import { UserFormComponent } from './pages/user-form/user-form.component';
 //import { AuthGuard } from '../../guards/auth.guard';
 import { AuthGuard } from '../../modules/auth/guards/auth.guard';
 import { AttendanceReportComponent } from './pages/attendance-report/attendance-report.component';
+import { ReportsComponent } from './pages/reports/reports.component';
+import { MembersReportComponent } from './pages/reports/members-report/members-report.component';
 
 const routes: Routes = [
   {
@@ -16,8 +18,10 @@ const routes: Routes = [
       { path: 'users/new', component: UserFormComponent },
       { path: 'users/edit/:id', component: UserFormComponent },
      // { path: '', redirectTo: 'users', pathMatch: 'full' },
-      { path: '', component: AdminComponent },
+      { path: '', component: AdminComponent, pathMatch: 'full' },
       { path: 'attendance-report', component: AttendanceReportComponent },
+      { path: 'reports', component: ReportsComponent },
+      { path: 'member-report', component: MembersReportComponent },
     ]
   }
 ];

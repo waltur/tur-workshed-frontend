@@ -17,13 +17,15 @@ import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
 
 
 
+
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
     FooterComponent,
     HomeComponent,
-    PayPalButtonComponent
+    PayPalButtonComponent,
+
 
   ],
   imports: [

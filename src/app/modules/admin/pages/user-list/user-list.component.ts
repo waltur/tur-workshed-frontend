@@ -10,20 +10,56 @@ import Swal from 'sweetalert2';
 })
 export class UserListComponent implements OnInit {
   users: any[] = [];
-  filter: 'all' | 'active' | 'inactive' = 'all';
+  filter: 'all' | 'active' | 'inactive'| 'noPhoto' | 'Newsletter' = 'all';
   selectedUser: any = null;
   loadingUserDetails = false;
   loadingUser = false;
+  expandedPayment: number | null = null;
 
     constructor(private adminService: AdminService) {}
 
-     ngOnInit(): void {
-         this.adminService.getUsers().subscribe(data => {
-              this.users = data;
+    ngOnInit(): void {
+
+        this.adminService.getUsers().subscribe((data: any[]) => {
+
+            this.users = data.map(user => {
+
+                if (user.end_date) {
+
+                    const today = new Date();
+
+                    const end = new Date(user.end_date);
+
+                    user.daysRemaining = Math.ceil(
+
+                        (end.getTime() - today.getTime()) /
+
+                        (1000 * 60 * 60 * 24)
+
+                    );
+
+                } else {
+
+                    user.daysRemaining = null;
+
+                }
+
+                return user;
+
             });
-      }
 
+        });
 
+    }
+
+    togglePayment(id: number): void {
+
+      this.expandedPayment =
+        this.expandedPayment === id
+          ? null
+          : id;
+
+    }
     openUser(user: any): void {
 
       this.loadingUser = true;
@@ -148,8 +184,13 @@ export class UserListComponent implements OnInit {
       return this.users.filter(user => user.is_active);
     } else if (this.filter === 'inactive') {
       return this.users.filter(user => !user.is_active);
+    } else if (this.filter === 'noPhoto') {
+        return this.users.filter(user => !user.photo_permission);
+    }else if (this.filter === 'Newsletter') {
+             return this.users.filter(user => user.community_preference === 'Newsletter');
     }
     return this.users;
+
   }
     copy(value: string){
 

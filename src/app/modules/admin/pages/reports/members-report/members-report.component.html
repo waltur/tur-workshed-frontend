@@ -1,0 +1,349 @@
+<div class="max-w-7xl mx-auto p-8">
+
+  <div class="mb-8">
+
+    <h1 class="text-3xl font-bold text-orange-600">
+
+      Members Report
+
+    </h1>
+
+    <p class="text-gray-500">
+
+      Complete overview of members and memberships.
+
+    </p>
+
+  </div>
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+      <!-- Search -->
+      <div class="relative w-full lg:w-96">
+
+        <input
+          type="text"
+          [(ngModel)]="search"
+          (keyup)="filterMembers()"
+          placeholder="Search member..."
+          class="w-full border rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+
+
+        <svg
+          class="w-5 h-5 absolute left-3 top-2.5 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24">
+
+          <circle cx="11" cy="11" r="8"></circle>
+
+          <path d="M21 21l-4.3-4.3"></path>
+
+        </svg>
+
+      </div>
+
+      <!-- Buttons -->
+
+      <div class="flex gap-3">
+
+        <button
+          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition flex items-center gap-2"
+          (click)="exportExcel()">
+
+          📊 Export Excel
+
+        </button>
+
+        <button
+          class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition flex items-center gap-2"
+          (click)="exportPDF()">
+
+          📄 Export PDF
+
+        </button>
+
+        <button
+          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition flex items-center gap-2"
+          (click)="loadReport()">
+
+          🔄 Refresh
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+  <!-- SUMMARY -->
+
+  <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-5 mb-8">
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Members</div>
+      <div class="text-3xl font-bold text-orange-600">
+        {{summary.total_members}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Active</div>
+      <div class="text-3xl font-bold text-green-600">
+        {{summary.active_members}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Revenue</div>
+      <div class="text-3xl font-bold text-blue-600">
+        AUD {{summary.membership_revenue}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Volunteers</div>
+      <div class="text-3xl font-bold text-pink-600">
+        {{summary.volunteers}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Verified Emails</div>
+      <div class="text-3xl font-bold text-purple-600">
+        {{summary.verified_members}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Photo Permission</div>
+      <div class="text-3xl font-bold text-indigo-600">
+        {{summary.photo_permission}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">Newsletter</div>
+      <div class="text-3xl font-bold text-cyan-600">
+        {{summary.newsletter_members}}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-gray-500 text-sm">WhatsApp</div>
+      <div class="text-3xl font-bold text-emerald-600">
+        {{summary.whatsapp_members}}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================= -->
+  <!-- ANALYTICS -->
+  <!-- ========================= -->
+
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+
+    <!-- Members by Age -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">
+
+        Members by Age
+
+      </h3>
+
+      <div style="height:320px">
+        <canvas id="ageChart"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Community Preference -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">
+
+        Community Preference
+
+      </h3>
+
+      <div style="height:320px">
+        <canvas id="communityChart"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Membership Revenue -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">
+
+        Membership Revenue
+
+      </h3>
+      <div class="chart-container">
+      <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Volunteers -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+      <h3 class="text-lg font-semibold mb-4 text-gray-700">
+
+        Volunteers
+
+      </h3>
+
+      <div class="bg-white rounded-xl shadow p-6">
+
+        <h3 class="text-lg font-semibold mb-4">
+
+          Payment Status
+
+        </h3>
+
+        <div style="height:320px">
+
+          <canvas id="paymentChart"></canvas>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+
+  <div class="bg-white rounded-xl shadow overflow-hidden">
+
+    <table class="w-full">
+
+      <thead class="bg-gray-100">
+
+      <tr>
+
+        <th class="text-left p-4">Member</th>
+
+        <th>Roles</th>
+
+        <th>Membership</th>
+
+        <th>Payment</th>
+
+        <th>Status</th>
+
+      </tr>
+
+      </thead>
+
+      <tbody>
+
+      <tr
+
+        *ngFor="let member of filteredMembers"
+
+        class="border-t hover:bg-orange-50 transition"
+
+      >
+
+        <td class="p-4">
+
+          <div class="font-semibold">
+
+            {{member.name}}
+
+          </div>
+
+          <div class="text-sm text-gray-500">
+
+            {{member.email}}
+
+          </div>
+
+        </td>
+
+        <td>
+
+                        <span
+
+                          *ngFor="let role of member.roles"
+
+                          class="bg-orange-100 text-orange-700 rounded-full px-2 py-1 text-xs mr-1"
+
+                        >
+
+                            {{role}}
+
+                        </span>
+
+        </td>
+
+        <td>
+
+          <div class="font-semibold text-green-700">
+
+            Active
+
+          </div>
+
+          <div class="text-xs text-gray-500">
+
+            Until
+
+            {{member.membership_end | date:'dd MMM yyyy'}}
+
+          </div>
+
+        </td>
+
+        <td>
+
+          <div>
+
+            AUD {{member.amount}}
+
+          </div>
+
+          <div class="text-xs text-gray-400">
+
+            {{member.last_payment | date}}
+
+          </div>
+
+        </td>
+
+        <td>
+
+                        <span
+
+                          class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs"
+
+                          *ngIf="member.payment_status=='completed'"
+
+                        >
+
+                            Paid
+
+                        </span>
+
+        </td>
+
+      </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

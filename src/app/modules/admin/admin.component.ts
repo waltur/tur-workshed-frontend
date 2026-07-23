@@ -17,8 +17,8 @@ export class AdminComponent {
       this.router.navigate(['/groups']);
     }else if (section === 'news') {
            this.router.navigate(['/news/create']);
-    }else if (section === 'attendance-report') {
-                this.router.navigate(['/admin/attendance-report']);
+    }else if (section === 'reports') {
+                this.router.navigate(['/admin/reports']);
          }
   }
 }

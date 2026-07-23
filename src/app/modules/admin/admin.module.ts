@@ -8,6 +8,8 @@ import { UserFormComponent } from './pages/user-form/user-form.component';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AttendanceReportComponent } from './pages/attendance-report/attendance-report.component';
+import { ReportsComponent } from './pages/reports/reports.component';
+import { MembersReportComponent } from './pages/reports/members-report/members-report.component';
 
 
 @NgModule({
@@ -16,6 +18,8 @@ import { AttendanceReportComponent } from './pages/attendance-report/attendance-
     UserListComponent,
     UserFormComponent,
     AttendanceReportComponent,
+    ReportsComponent,
+    MembersReportComponent,
 
 
   ],
