@@ -18,7 +18,7 @@ constructor(private authService: AuthService, private router: Router) {}
 
     // Si la ruta comienza con /admin, verificar que tenga rol admin
     if (route.routeConfig?.path === 'admin' || route.parent?.routeConfig?.path === 'admin') {
-      if (!this.authService.getUserRoles().includes('Admin')) {
+      if (!this.authService.getUserRoles().includes('Committe')) {
         this.router.navigate(['/']);
         return false;
       }

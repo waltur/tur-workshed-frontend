@@ -76,18 +76,10 @@ export class DashboardComponent {
        `Email: ${user.email}\n` +
        `Roles: ${user.roles.join(', ')}`;
    }
-  this.canChangePassword = this.roles.includes('Volunteer') || this.roles.includes('Member');
+  this.canChangePassword = this.roles.includes('Volunteer') || this.roles.includes('Participant(member)');
  }
 
-/*loadMyEventsCount() {
-  const contactId = this.authService.getContactId();
-  if (!contactId) return;
 
-  this.groupService.getMyEventsCount(contactId)
-    .subscribe(res => {
-      this.myEventsCount = res.total;
-    });
-}*/
 pageSize = 10;
 currentPage = 1;
 
@@ -188,7 +180,7 @@ toggleTab(tab: 'completed' | 'upcoming' | 'missed') {
   this.activeTab = this.activeTab === tab ? null : tab;
 }
     isAdmin(): boolean {
-      return this.roles.includes('Admin');
+      return this.roles.includes('Committe');
     }
 
     isStaff(): boolean {

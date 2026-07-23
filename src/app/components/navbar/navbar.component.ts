@@ -30,7 +30,7 @@ ngOnInit(): void {
    this.authService.logout();
  }
 isAdmin(): boolean {
-  return !!this.userInfo?.roles?.includes('Admin');
+  return !!this.userInfo?.roles?.includes('Committe');
 }
 
 isVolunteer(): boolean {

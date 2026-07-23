@@ -92,7 +92,7 @@ paypalCaptureId = '';
        this.roles = data;
        const volunteerRole = this.roles.find(role => role.role_name.toLowerCase() === 'volunteer');
               this.volunteerRoleId = volunteerRole ? volunteerRole.id_role : null;
-       const memberRole = this.roles.find(role => role.role_name.toLowerCase() === 'member');
+       const memberRole = this.roles.find(role => role.role_name.toLowerCase() === 'participant(member)');
               this.memberRoleId = memberRole ? memberRole.id_role : null;
 
      },
@@ -470,7 +470,7 @@ toggleRole(roleId: number): void {
   }
 }
 isPublicRole(roleName: string): boolean {
-  const publicRoles = ['volunteer', 'member'];
+  const publicRoles = ['volunteer', 'participant(member)'];
   return this.isAdmin || publicRoles.includes(roleName.toLowerCase());
 }
 getSelectedRoleNames(): string[] {

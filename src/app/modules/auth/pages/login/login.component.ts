@@ -39,85 +39,7 @@ showRegistrationMessage() {
     this.registrationMessage = false;
   }, 8000);
 }
-/*submit(): void {
-  this.loading = true;
-  this.loginError = '';
-  console.log("login");
 
-  if (this.loginForm.invalid) {
-    this.loginForm.markAllAsTouched();
-    this.loading = false;
-    Swal.fire({
-      icon: 'error',
-      title: 'Login Failed',
-      text: 'Please fill in all required fields.'
-    });
-    return;
-  }
-
-  const { email, password } = this.loginForm.value;
-
-  this.authService.login(email, password)
-    .pipe(
-      timeout(10000), // ❗10 segundos de espera máxima
-      catchError(err => {
-        if (err.name === 'TimeoutError') {
-          return throwError(() => ({
-            status: 408,
-            message: 'Login timed out. Invalid email or password, please try again.'
-          }));
-        }
-        return throwError(() => err);
-      }),
-      finalize(() => this.loading = false)
-    )
-    .subscribe({
-      next: () => {
-        const roles = this.authService.getUserRoles();
-        if (roles.includes('Admin')) {
-          this.router.navigate(['/admin']);
-        } else if (roles.includes('Staff')) {
-          this.router.navigate(['/dashboard']);
-        } else if (roles.includes('Volunteer')) {
-          this.router.navigate(['/volunteers']);
-        } else {
-          this.router.navigate(['/']);
-        }
-      },
-      error: (error) => {
-        console.error('Error en login:', error);
-
-        let message = 'Invalid email or password.';
-
-        if (error.status === 403) {
-          Swal.fire('Email not verified', 'Please verify your email before logging in.' || 'Your account needs verification.', 'warning');
-         /* Swal.fire({
-            icon: 'info',
-            title: 'Verify your email',
-            html: `
-              Please verify your email before logging in.<br>
-              <strong><a href="/resend-verification">Resend verification email</a></strong>
-            `,
-          });*/
-      /*    return;
-        }
-
-        if (error.status === 408) {
-          message = error.message || 'Request timed out.';
-        } else if (error.status === 401 && error.message) {
-          message = error.message;
-        } else if (error.status === 0) {
-          message = 'Unable to connect to the server.';
-        }
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: message
-        });
-      }
-    });
-}*/
 submit(): void {
   this.loading = true;
 
@@ -138,7 +60,7 @@ submit(): void {
 
         const roles = this.authService.getUserRoles();
 
-        if (roles.includes('Admin')) {
+        if (roles.includes('Committe')) {
           this.router.navigate(['/admin']);
         }
         else if (roles.includes('Staff')) {
