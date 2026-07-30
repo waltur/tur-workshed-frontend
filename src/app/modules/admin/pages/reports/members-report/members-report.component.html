@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto p-8">
+<div class="max-w-7xl mx-auto p-12">
 
   <div class="mb-8">
 
@@ -80,63 +80,199 @@
   </div>
   <!-- SUMMARY -->
 
-  <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-5 mb-8">
+  <div class="grid xl:grid-cols-3 lg:grid-cols-2 gap-6 mb-8">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Members</div>
-      <div class="text-3xl font-bold text-orange-600">
-        {{summary.total_members}}
-      </div>
-    </div>
+    <div class="bg-white rounded-xl shadow-lg p-6">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Active</div>
-      <div class="text-3xl font-bold text-green-600">
-        {{summary.active_members}}
-      </div>
-    </div>
+      <h2
+        class="text-xl font-bold text-orange-600 mb-6">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Revenue</div>
-      <div class="text-3xl font-bold text-blue-600">
-        AUD {{summary.membership_revenue}}
-      </div>
-    </div>
+        MEMBERSHIP
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Volunteers</div>
-      <div class="text-3xl font-bold text-pink-600">
-        {{summary.volunteers}}
-      </div>
-    </div>
+      </h2>
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Verified Emails</div>
-      <div class="text-3xl font-bold text-purple-600">
-        {{summary.verified_members}}
-      </div>
-    </div>
+      <div class="space-y-4">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Photo Permission</div>
-      <div class="text-3xl font-bold text-indigo-600">
-        {{summary.photo_permission}}
-      </div>
-    </div>
+        <div class="flex justify-between">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">Newsletter</div>
-      <div class="text-3xl font-bold text-cyan-600">
-        {{summary.newsletter_members}}
-      </div>
-    </div>
+          <span>👥 Members</span>
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-gray-500 text-sm">WhatsApp</div>
-      <div class="text-3xl font-bold text-emerald-600">
-        {{summary.whatsapp_members}}
+          <span class="font-bold">
+
+                {{summary.total_members}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>💳 Paid Members</span>
+
+          <span class="font-bold">
+
+                {{summary.paid_members}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>🟢 Active Memberships</span>
+
+          <span class="font-bold">
+
+                {{summary.active_members}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>💲 Revenue</span>
+
+          <span class="font-bold text-green-600">
+
+                AUD {{summary.membership_revenue}}
+
+            </span>
+
+        </div>
+
       </div>
+
     </div>
+    <!--PRIMER BLOQUE-->
+
+    <div class="bg-white rounded-xl shadow-lg p-6">
+
+      <h2
+        class="text-xl font-bold text-pink-600 mb-6">
+
+        VOLUNTEERS
+
+      </h2>
+
+      <div class="space-y-4">
+
+        <div class="flex justify-between">
+
+          <span>🤝 Volunteers</span>
+
+          <span class="font-bold">
+
+                {{summary.volunteers}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>🚗 Vehicle Owners</span>
+
+          <span class="font-bold">
+
+                {{summary.vehicle_owners}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>🧰 Skills</span>
+
+          <span class="font-bold">
+
+                {{summary.total_skills}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>📜 Certifications</span>
+
+          <span class="font-bold">
+
+                {{summary.total_certifications}}
+
+            </span>
+
+        </div>
+
+      </div>
+
+    </div>
+    <!--segundo bloque-->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+
+      <h2
+        class="text-xl font-bold text-blue-600 mb-6">
+
+        COMMUNITY
+
+      </h2>
+
+      <div class="space-y-4">
+
+        <div class="flex justify-between">
+
+          <span>📧 Newsletter</span>
+
+          <span class="font-bold">
+
+                {{summary.newsletter_members}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>💬 WhatsApp</span>
+
+          <span class="font-bold">
+
+                {{summary.whatsapp_members}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>📸 Photo Permission</span>
+
+          <span class="font-bold">
+
+                {{summary.photo_permission}}
+
+            </span>
+
+        </div>
+
+        <div class="flex justify-between">
+
+          <span>✔ Verified Emails</span>
+
+          <span class="font-bold">
+
+                {{summary.verified_members}}
+
+            </span>
+
+        </div>
+
+      </div>
+
+    </div>
+    <!--tercer bloque-->
+
 
   </div>
 
@@ -232,41 +368,73 @@
 
       <tr>
 
-        <th class="text-left p-4">Member</th>
+        <th class="p-4 text-left">Member</th>
 
-        <th>Roles</th>
+        <th class="text-center">Roles</th>
 
-        <th>Membership</th>
+        <th class="text-center">Membership</th>
 
-        <th>Payment</th>
+        <th class="text-center">Volunteer</th>
 
-        <th>Status</th>
+        <th class="text-center">Payment</th>
+
+        <th class="text-center">Status</th>
+
+        <th class="text-center">Actions</th>
 
       </tr>
 
       </thead>
-
       <tbody>
 
-      <tr
 
-        *ngFor="let member of filteredMembers"
+      <ng-container *ngFor="let member of filteredMembers">
 
-        class="border-t hover:bg-orange-50 transition"
+        <tr
+          class="border-t hover:bg-orange-50 transition">
 
-      >
+
+
+
 
         <td class="p-4">
 
-          <div class="font-semibold">
+          <div class="flex items-center gap-4">
 
-            {{member.name}}
+            <img
+              *ngIf="member.photo_url"
+              [src]="member.photo_url"
+              class="w-14 h-14 rounded-full object-cover border">
 
-          </div>
+            <div
+              *ngIf="!member.photo_url"
+              class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">
 
-          <div class="text-sm text-gray-500">
+              {{member.name.charAt(0)}}
 
-            {{member.email}}
+            </div>
+
+            <div>
+
+              <div class="font-semibold">
+
+                {{member.name}}
+
+              </div>
+
+              <div class="text-sm text-gray-500">
+
+                {{member.email}}
+
+              </div>
+
+              <div class="text-xs text-gray-400">
+
+                {{member.phone_number}}
+
+              </div>
+
+            </div>
 
           </div>
 
@@ -287,16 +455,27 @@
                         </span>
 
         </td>
+        <td class="text-center">
 
-        <td>
+    <span
+      *ngIf="member.membership_status=='active'"
+      class="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs">
 
-          <div class="font-semibold text-green-700">
+        Active
 
-            Active
+    </span>
 
-          </div>
+          <span
+            *ngIf="member.membership_status!='active'"
+            class="bg-gray-100 text-gray-600 rounded-full px-3 py-1 text-xs">
 
-          <div class="text-xs text-gray-500">
+        None
+
+    </span>
+
+          <div
+            class="text-xs text-gray-500 mt-2"
+            *ngIf="member.membership_end">
 
             Until
 
@@ -306,39 +485,332 @@
 
         </td>
 
-        <td>
+        <td class="text-center">
 
-          <div>
+    <span
+      *ngIf="member.occupation"
+      class="bg-pink-100 text-pink-700 rounded-full px-3 py-1 text-xs">
 
-            AUD {{member.amount}}
+        Volunteer Profile
+
+    </span>
+
+          <span
+            *ngIf="!member.occupation"
+            class="text-gray-400">
+
+        —
+
+    </span>
+
+        </td>
+
+        <td class="text-center">
+
+          <div class="font-semibold">
+
+            {{member.membership_amount
+            ? ('AUD ' + member.membership_amount)
+            : '-'}}
 
           </div>
 
-          <div class="text-xs text-gray-400">
+          <div
+            class="text-xs text-gray-400"
+            *ngIf="member.paid_at">
 
-            {{member.last_payment | date}}
+            {{member.paid_at | date:'dd MMM yyyy'}}
 
           </div>
 
         </td>
+        <td class="text-center">
 
-        <td>
+    <span
+      *ngIf="member.payment_status=='completed'"
+      class="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs">
 
-                        <span
+        Paid
 
-                          class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs"
+    </span>
 
-                          *ngIf="member.payment_status=='completed'"
+          <span
+            *ngIf="member.payment_status!='completed'"
+            class="bg-red-100 text-red-600 rounded-full px-3 py-1 text-xs">
 
-                        >
+        Pending
 
-                            Paid
+    </span>
 
-                        </span>
+        </td>
+
+        <td class="text-center">
+
+          <button
+            (click)="toggleMember(member)"
+            class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg">
+
+            {{expandedMember===member.id_user ? 'Hide' : 'View'}}
+
+          </button>
+
+        </td>
+      </tr>
+      <tr *ngIf="expandedMember===member.id_user">
+
+        <td colspan="7" class="bg-orange-50 p-6">
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <div>
+
+              <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+                Volunteer Profile
+
+              </h3>
+
+              <div class="space-y-2">
+
+                <p>
+
+                  <strong>Occupation:</strong>
+
+                  {{member.occupation || '-'}}
+
+                </p>
+
+                <p>
+
+                  <strong>Organisation:</strong>
+
+                  {{member.organisation || '-'}}
+
+                </p>
+
+                <p>
+
+                  <strong>Languages:</strong>
+
+                  {{member.languages || '-'}}
+
+                </p>
+
+                <p>
+
+                  <strong>Own Vehicle:</strong>
+
+                  {{member.own_vehicle ? 'Yes' : 'No'}}
+
+                </p>
+
+              </div>
+
+            </div>
+
+            <div>
+
+              <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+                Membership
+
+              </h3>
+
+              <div class="space-y-2">
+
+                <p>
+
+                  <strong>Status:</strong>
+
+                  {{member.membership_status || '-'}}
+
+                </p>
+
+                <p>
+
+                  <strong>Payment:</strong>
+
+                  {{member.payment_status || '-'}}
+
+                </p>
+
+                <p>
+
+                  <strong>Amount:</strong>
+
+                  AUD {{member.membership_amount || 0}}
+
+                </p>
+
+                <p>
+
+                  <strong>Membership Ends:</strong>
+
+                  {{member.membership_end | date:'dd MMM yyyy'}}
+
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+          <hr class="my-6">
+          <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+            Skills
+
+          </h3>
+
+          <div class="flex flex-wrap gap-2">
+
+    <span
+
+      *ngFor="let skill of member.skills"
+
+      class="bg-blue-100 text-blue-700 rounded-full px-3 py-1">
+
+        {{skill}}
+
+    </span>
+
+          </div>
+
+          <hr class="my-6">
+
+          <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+            Interests
+
+          </h3>
+
+          <div class="flex flex-wrap gap-2">
+
+    <span
+
+      *ngFor="let item of member.interests"
+
+      class="bg-green-100 text-green-700 rounded-full px-3 py-1">
+
+        {{item}}
+
+    </span>
+
+          </div>
+
+          <hr class="my-6">
+
+          <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+            Certifications
+
+          </h3>
+
+          <div class="flex flex-wrap gap-2">
+
+    <span
+
+      *ngFor="let cert of member.certifications"
+
+      class="bg-purple-100 text-purple-700 rounded-full px-3 py-1">
+
+        {{cert}}
+
+    </span>
+
+          </div>
+          <hr class="my-6">
+
+          <h3 class="font-bold text-lg text-orange-600 mb-4">
+
+            Availability
+
+          </h3>
+
+          <div class="flex flex-wrap gap-2">
+
+    <span
+
+      *ngFor="let item of member.availability"
+
+      class="bg-yellow-100 text-yellow-700 rounded-full px-3 py-1">
+
+        {{item}}
+
+    </span>
+
+          </div>
+          <hr class="my-6">
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div>
+
+              <h4 class="font-semibold">
+
+                Volunteer Experience
+
+              </h4>
+
+              <p>
+
+                {{member.volunteer_experience || '-'}}
+
+              </p>
+
+            </div>
+
+            <div>
+
+              <h4 class="font-semibold">
+
+                Medical Conditions
+
+              </h4>
+
+              <p>
+
+                {{member.medical_conditions || '-'}}
+
+              </p>
+
+            </div>
+
+            <div>
+
+              <h4 class="font-semibold">
+
+                Emergency Notes
+
+              </h4>
+
+              <p>
+
+                {{member.emergency_notes || '-'}}
+
+              </p>
+
+            </div>
+
+          </div>
+          <hr class="my-6">
+
+          <h4 class="font-semibold mb-2">
+
+            Additional Information
+
+          </h4>
+
+          <p>
+
+            {{member.additional_information || '-'}}
+
+          </p>
 
         </td>
 
       </tr>
+      </ng-container>
 
       </tbody>
 

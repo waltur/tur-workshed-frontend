@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
+import { VolunteerService } from '../../services/volunteer.service';
 import { PaypalService } from '../../../../services/paypal.service';
 import { JobRoleService } from '../../services/job-role.service';
 import { Router } from '@angular/router';
@@ -42,6 +43,25 @@ paymentCompleted = false;
 
 paypalOrderId = '';
 paypalCaptureId = '';
+isMemberSelected = false;
+
+//volunteer
+
+interests: any[] = [];
+skills: any[] = [];
+certifications: any[] = [];
+availability: any[] = [];
+
+selectedAvailability:number[]=[];
+availabilityTypes:any[]=[];
+
+selectedVolunteerData = {
+  interests: [] as number[],
+  skills: [] as number[],
+  certifications: [] as number[]
+};
+
+registering = false;
 
   constructor(
     private fb: FormBuilder,
@@ -50,7 +70,8 @@ paypalCaptureId = '';
     private roleService:RoleService,
     private jobRoleService:JobRoleService,
     private imageUpload: ImageUploadService,
-    private paypalService: PaypalService
+    private paypalService: PaypalService,
+    private volunteerService: VolunteerService,
   ) {}
 
  ngOnInit(): void {
@@ -67,11 +88,7 @@ paypalCaptureId = '';
      community_preference: ['', Validators.required],
      photo_url: [null],
 
-     // ✅ YA TENÍAS
-     /*acknowledged_rules: [false, Validators.requiredTrue],
-     acknowledged_privacy: [false, Validators.requiredTrue],
-     acknowledged_code_of_conduct: [false, Validators.requiredTrue],
-     acknowledged_health_safety: [false, Validators.requiredTrue],*/
+
 
      // 🔥 NUEVOS (STEP 4)
      confirm_age: [false, Validators.requiredTrue],
@@ -81,12 +98,23 @@ paypalCaptureId = '';
      accept_code_full: [false, Validators.requiredTrue],
      accept_health_full: [false, Validators.requiredTrue],
      final_acknowledgement: [false, Validators.requiredTrue],
-
      wants_to_volunteer: [false],
-     volunteer_acknowledgement: [false]
+     volunteer_acknowledgement: [false],
+
+     // STEP 5
+    occupation: [''],
+    organisation: [''],
+    languages: [''],
+    own_vehicle: [false],
+    medical_conditions: [''],
+    volunteer_experience: [''],
+    emergency_notes: [''],
+    additional_information: [''],
+
    });
 
    this.isAdmin = this.authService.isAdmin();
+   this.loadVolunteerCatalogs();
    this.roleService.getRoles().subscribe({
      next: (data) => {
        this.roles = data;
@@ -109,9 +137,6 @@ togglePasswordVisibility(): void {
 loadPaypalButtons(): void {
 
   // Evita renderizar más de una vez
-  if (this.paypalRendered) {
-    return;
-  }
 
   const paypal = (window as any).paypal;
 
@@ -127,7 +152,7 @@ loadPaypalButtons(): void {
     return;
   }
 
-  // Limpia el contenedor por si quedó algo previo
+
   container.innerHTML = '';
 
   paypal.Buttons({
@@ -204,8 +229,6 @@ loadPaypalButtons(): void {
   }).render('#paypal-button-container')
     .then(() => {
 
-      this.paypalRendered = true;
-
       console.log('PayPal Buttons Rendered');
 
     });
@@ -225,10 +248,30 @@ validatePhone(control: any) {
 }
 submit(): void {
   console.log('FORM VALUE BEFORE SUBMIT', this.registerForm.value);
-  if (this.registerForm.invalid) {
+const invalidFields = Object.keys(this.registerForm.controls)
+    .filter(key => this.registerForm.get(key)?.invalid);
+
+if (invalidFields.length > 0) {
+
     this.registerForm.markAllAsTouched();
+
+    Swal.fire({
+
+        icon: 'warning',
+
+        title: 'Please complete the form',
+
+        html: `
+            There are <b>${invalidFields.length}</b> required fields missing.
+        `,
+
+        confirmButtonColor: '#ea580c'
+
+    });
+
     return;
-  }
+
+}
 
   if (this.emailInUse) {
     Swal.fire({
@@ -277,14 +320,36 @@ submit(): void {
     job_roles: this.selectedJobRoleIds,
     paypal_order_id: this.paypalOrderId,
     paypal_capture_id: this.paypalCaptureId,
+    interests: this.selectedVolunteerData.interests,
+    skills: this.selectedVolunteerData.skills,
+    certifications: this.selectedVolunteerData.certifications,
 
   };
 
-  this.loading = true; // ⏳ Inicia loading
+  this.loading = true;
+
+  Swal.fire({
+
+      title: 'Creating your account...',
+
+      html: 'Please wait a moment.',
+
+      allowOutsideClick: false,
+
+      allowEscapeKey: false,
+
+      didOpen: () => {
+
+          Swal.showLoading();
+
+      }
+
+  });
   console.log(formData);
   this.authService.register(formData).subscribe({
     next: () => {
       this.loading = false; // ✅ Finaliza loading
+      Swal.close();
       Swal.fire({
         icon: 'success',
         title: 'Registration Complete',
@@ -296,6 +361,7 @@ submit(): void {
     },
     error: () => {
       this.loading = false; // ❌ Finaliza loading si ocurre error
+      Swal.close();
       Swal.fire({
         icon: 'error',
         title: 'Registration Failed',
@@ -325,7 +391,7 @@ checkUsername(): void {
   });
 }
 nextStep(): void {
-
+ this.isMemberSelected=false;
   // ✅ STEP 1
   if (this.step === 1) {
 
@@ -405,47 +471,135 @@ nextStep(): void {
   }
 
   // ✅ STEP 4 (VALIDACIÓN FINAL)
+ // ✅ STEP 4 (VALIDACIÓN FINAL)
+
  if (this.step === 4) {
 
-   this.registerForm.updateValueAndValidity();
-   const isMember = this.selectedRoleIds.includes(this.memberRoleId!);
-   console.log("isMember", isMember);
-   const step4Fields = [
-     'confirm_age',
-     'accept_membership_policy',
-     'accept_consent',
-     'accept_privacy_full',
-     'accept_code_full',
-     'accept_health_full',
-     'final_acknowledgement'
-   ];
+     this.registerForm.updateValueAndValidity();
 
-   const invalidFields = step4Fields.filter(field => {
-     const control = this.registerForm.get(field);
-     return control && control.invalid;
-   });
+     const isMember =
+         this.selectedRoleIds.includes(this.memberRoleId!);
 
-   if (invalidFields.length > 0) {
-     Swal.fire({
-       icon: 'warning',
-       title: 'Incomplete confirmation',
-       text: 'You must accept all policies to continue.',
-       confirmButtonColor: '#e91e63'
+     this.isMemberSelected = isMember;
+
+     const step4Fields = [
+
+         'confirm_age',
+
+         'accept_membership_policy',
+
+         'accept_consent',
+
+         'accept_privacy_full',
+
+         'accept_code_full',
+
+         'accept_health_full',
+
+         'final_acknowledgement'
+
+     ];
+
+     const invalidFields = step4Fields.filter(field => {
+
+         const control = this.registerForm.get(field);
+
+         return control && control.invalid;
+
      });
 
-     this.markFieldsAsTouched(step4Fields);
-     return;
-   }
-      if (isMember) {
-        this.step = 5;
-        setTimeout(() => {
-        this.loadPaypalButtons();
-       });
+     if (invalidFields.length > 0) {
 
-      } else {
-        this.submit();
-      }
- //  this.submit();
+         Swal.fire({
+
+             icon:'warning',
+
+             title:'Incomplete confirmation',
+
+             text:'You must accept all policies to continue.',
+
+             confirmButtonColor:'#e91e63'
+
+         });
+
+         this.markFieldsAsTouched(step4Fields);
+
+         return;
+
+     }
+
+     //---------------------------------------
+     // NEW VOLUNTEER STEP
+     //---------------------------------------
+
+     if(this.isVolunteer){
+
+         this.step = 5;
+
+         return;
+
+     }
+
+     //---------------------------------------
+     // NON VOLUNTEERS
+     //---------------------------------------
+
+     if(isMember){
+
+         this.step = 6;
+
+         setTimeout(()=>{
+
+             this.loadPaypalButtons();
+
+         });
+
+     }else{
+
+         this.submit();
+
+     }
+
+ }
+ if(this.step==5){
+
+     const isMember =
+         this.selectedRoleIds.includes(this.memberRoleId!);
+
+       if (this.selectedVolunteerData.interests.length === 0) {
+
+         Swal.fire({
+
+           icon: 'warning',
+
+           title: 'Select an area of interest',
+
+           text: 'Please choose at least one area where you would like to volunteer.'
+
+         });
+
+         return;
+
+       }
+
+     if(isMember){
+
+         this.step=6;
+
+         setTimeout(()=>{
+
+             this.loadPaypalButtons();
+
+         });
+
+     }else{
+
+         this.submit();
+
+     }
+
+     return;
+
  }
 }
 markFieldsAsTouched(fields: string[]) {
@@ -534,6 +688,99 @@ async onPhotoSelected(event: any) {
     });
   }
 }
+loadVolunteerCatalogs(): void {
+console.log("loadVolunteerCatalogs");
+    this.volunteerService.getCatalogs()
 
+    .subscribe({
+
+        next:(response)=>{
+
+            this.interests=response.interests;
+
+            this.skills=response.skills;
+
+            this.certifications=response.certifications;
+
+            this.availability=response.availability;
+
+        },
+
+        error:(err)=>{
+
+            console.error(err);
+
+        }
+
+    });
+
+}
+
+
+
+
+
+
+toggleSelection(
+  type: 'interests' | 'skills' | 'certifications',
+  id: number
+): void {
+
+  const list = this.selectedVolunteerData[type];
+
+  const index = list.indexOf(id);
+
+  if (index >= 0) {
+
+    list.splice(index, 1);
+
+  } else {
+
+    list.push(id);
+
+  }
+
+}
+get nextButtonText(): string {
+
+  const isMember = this.selectedRoleIds.includes(this.memberRoleId!);
+  const isVolunteer = this.selectedRoleIds.includes(this.volunteerRoleId!);
+
+  switch (this.step) {
+
+    case 1:
+    case 2:
+    case 3:
+      return 'Continue';
+
+    case 4:
+
+      if (isVolunteer) {
+        return 'Continue';
+      }
+
+      if (isMember) {
+        return 'Continue with Payment';
+      }
+
+      return 'Finish Registration';
+
+    case 5:
+
+      // Si el paso 5 es el cuestionario del voluntario
+
+      if (isMember) {
+        return 'Continue with Payment';
+      }
+
+      return 'Finish Registration';
+
+    case 6:
+      return 'Pay Membership';
+
+    default:
+      return 'Continue';
+  }
+}
 
 }

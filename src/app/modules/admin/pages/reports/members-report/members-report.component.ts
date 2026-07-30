@@ -3,6 +3,8 @@ import { ReportService } from './../service/report.service';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Chart, registerables } from 'chart.js';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 Chart.register(...registerables);
 
 @Component({
@@ -29,6 +31,8 @@ export class MembersReportComponent implements OnInit {
   paymentChart!: Chart;
 
   revenueChart!: Chart;
+
+  expandedMember: number | null = null;
   constructor(
     private reportsService: ReportService
   ) {}
@@ -36,6 +40,14 @@ export class MembersReportComponent implements OnInit {
   ngOnInit(): void {
 
     this.loadReport();
+
+  }
+  toggleMember(member: any): void {
+
+      this.expandedMember =
+          this.expandedMember === member.id_user
+              ? null
+              : member.id_user;
 
   }
 
@@ -323,82 +335,372 @@ console.log("loadReport");
     );
 
   }
-    exportExcel(): void {
+   exportExcel(): void {
 
-      const rows = this.filteredMembers.map((member: any) => ({
+     const rows = this.filteredMembers.map((member: any) => ({
 
-        Name: member.name,
+       //====================================================
+       // GENERAL
+       //====================================================
 
-        Username: member.username,
+       Name: member.name,
 
-        Email: member.email,
+       Username: member.username,
 
-        Phone: member.phone_number,
+       Email: member.email,
 
-        Roles: member.roles?.join(', '),
+       Phone: member.phone_number,
 
-        Active: member.is_active ? 'Yes' : 'No',
+       Roles: member.roles?.join(', ') || '',
 
-        Verified: member.is_verified ? 'Yes' : 'No',
+       Active: member.is_active ? 'Yes' : 'No',
 
-        Membership: member.membership_year ?? '-',
+       Verified: member.is_verified ? 'Yes' : 'No',
 
-        Amount: member.membership_amount
-          ? `${member.currency} ${member.membership_amount}`
-          : '-',
+       //====================================================
+       // MEMBERSHIP
+       //====================================================
 
-        Payment: member.payment_status ?? 'Pending',
+       'Membership Status': member.membership_status ?? '-',
 
-        PaidAt: member.paid_at
-          ? new Date(member.paid_at).toLocaleDateString()
-          : '-'
+       'Membership Start': member.membership_start
+         ? new Date(member.membership_start).toLocaleDateString()
+         : '-',
 
-      }));
+       'Membership End': member.membership_end
+         ? new Date(member.membership_end).toLocaleDateString()
+         : '-',
 
-      const worksheet = XLSX.utils.json_to_sheet(rows);
+       'Payment Status': member.payment_status ?? 'Pending',
 
-      const workbook = XLSX.utils.book_new();
+       'Membership Amount': member.membership_amount ?? '-',
 
-      XLSX.utils.book_append_sheet(
-          workbook,
-          worksheet,
-          'Members'
-      );
+       Currency: member.currency ?? '-',
 
-      const excelBuffer = XLSX.write(workbook, {
+       'Paid Date': member.paid_at
+         ? new Date(member.paid_at).toLocaleDateString()
+         : '-',
 
-          bookType: 'xlsx',
+       //====================================================
+       // VOLUNTEER PROFILE
+       //====================================================
 
-          type: 'array'
+       Occupation: member.occupation ?? '',
 
-      });
+       Organisation: member.organisation ?? '',
 
-      const blob = new Blob(
+       Languages: member.languages ?? '',
 
-          [excelBuffer],
+       'Own Vehicle': member.own_vehicle ? 'Yes' : 'No',
 
-          {
-            type:
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          }
+       //====================================================
+       // VOLUNTEER
+       //====================================================
 
-      );
+       Skills:
+         member.skills?.length
+           ? member.skills.join(', ')
+           : '',
 
-      const today = new Date();
+       Interests:
+         member.interests?.length
+           ? member.interests.join(', ')
+           : '',
 
-      saveAs(
+       Certifications:
+         member.certifications?.length
+           ? member.certifications.join(', ')
+           : '',
 
-          blob,
+       Availability:
+         member.availability?.length
+           ? member.availability.join(', ')
+           : '',
 
-          `Members_Report_${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}.xlsx`
+       //====================================================
+       // EXTRA INFORMATION
+       //====================================================
 
-      );
+       'Volunteer Experience':
+         member.volunteer_experience ?? '',
+
+       'Medical Conditions':
+         member.medical_conditions ?? '',
+
+       'Emergency Notes':
+         member.emergency_notes ?? '',
+
+       'Additional Information':
+         member.additional_information ?? ''
+
+     }));
+
+
+     const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet['!cols'] = [
+
+        { wch: 22 }, // Name
+        { wch: 18 }, // Username
+        { wch: 35 }, // Email
+        { wch: 18 }, // Phone
+        { wch: 35 }, // Roles
+        { wch: 10 }, // Active
+        { wch: 10 }, // Verified
+
+        { wch: 18 }, // Membership Status
+        { wch: 15 }, // Membership Start
+        { wch: 15 }, // Membership End
+        { wch: 18 }, // Payment Status
+        { wch: 18 }, // Membership Amount
+        { wch: 10 }, // Currency
+        { wch: 15 }, // Paid Date
+
+        { wch: 28 }, // Occupation
+        { wch: 28 }, // Organisation
+        { wch: 20 }, // Languages
+        { wch: 12 }, // Own Vehicle
+
+        { wch: 40 }, // Skills
+        { wch: 40 }, // Interests
+        { wch: 35 }, // Certifications
+        { wch: 35 }, // Availability
+
+        { wch: 45 }, // Experience
+        { wch: 35 }, // Medical
+        { wch: 35 }, // Emergency
+        { wch: 45 }  // Additional
+
+      ];
+
+     const workbook = XLSX.utils.book_new();
+
+     XLSX.utils.book_append_sheet(
+         workbook,
+         worksheet,
+         'Members'
+     );
+
+     const excelBuffer = XLSX.write(workbook, {
+         bookType: 'xlsx',
+         type: 'array'
+     });
+
+     const blob = new Blob(
+         [excelBuffer],
+         {
+           type:
+           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+         }
+     );
+
+     const today = new Date();
+
+     saveAs(
+         blob,
+         `Members_Report_${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}.xlsx`
+     );
+
+   }
+   exportPDF(): void {
+
+     const doc = new jsPDF('p','mm','a4');
+
+     const pageWidth = doc.internal.pageSize.getWidth();
+     const today = new Date();
+
+     //-------------------------------------------------------
+     // PORTADA
+     //-------------------------------------------------------
+
+     doc.setFillColor(242,102,34);
+     doc.rect(0,0,pageWidth,40,'F');
+
+     doc.setTextColor(255,255,255);
+     doc.setFontSize(24);
+     doc.text('The Workshed',15,20);
+
+     doc.setFontSize(18);
+     doc.text('Members & Volunteers Report',15,32);
+
+     doc.setTextColor(0,0,0);
+
+     doc.setFontSize(11);
+
+     doc.text(
+         `Generated: ${today.toLocaleString()}`,
+         15,
+         55
+     );
+
+     doc.text(
+         `Total Members: ${this.summary.total_members}`,
+         15,
+         65
+     );
+
+     doc.text(
+         `Active Members: ${this.summary.active_members}`,
+         15,
+         72
+     );
+
+     doc.text(
+         `Volunteers: ${this.summary.volunteers}`,
+         15,
+         79
+     );
+
+     doc.text(
+         `Membership Revenue: AUD ${this.summary.membership_revenue}`,
+         15,
+         86
+     );
+doc.addPage();
+doc.setFontSize(18);
+
+doc.text(
+    'Executive Summary',
+    14,
+    20
+);
+autoTable(doc,{
+
+    startY:30,
+
+    theme:'grid',
+
+    head:[['Metric','Value']],
+
+    body:[
+
+        ['Total Members',this.summary.total_members],
+
+        ['Active Members',this.summary.active_members],
+
+        ['Inactive Members',this.summary.inactive_members],
+
+        ['Verified',this.summary.verified_members],
+
+        ['Volunteers',this.summary.volunteers],
+
+        ['Paid Members',this.summary.paid_members],
+
+        ['Revenue',`AUD ${this.summary.membership_revenue}`],
+
+        ['Newsletter',this.summary.newsletter_members],
+
+        ['WhatsApp',this.summary.whatsapp_members],
+
+        ['Photo Permission',this.summary.photo_permission]
+
+    ]
+
+});
+doc.addPage('a4','landscape');
+
+doc.setFontSize(18);
+doc.setTextColor(242,102,34);
+doc.text('Members & Volunteers',14,18);
+doc.setTextColor(0,0,0);
+
+doc.setFontSize(10);
+
+doc.text(
+    'Complete membership database',
+    14,
+    25
+);
+autoTable(doc,{
+
+    startY:30,
+
+    theme:'striped',
+
+    head:[[
+
+        'Name',
+
+        'Roles',
+
+        'Occupation',
+
+        'Skills',
+
+        'Interests',
+
+        'Membership',
+
+        'Payment'
+
+    ]],
+
+    body:this.filteredMembers.map((m:any)=>([
+
+        m.name,
+
+        (m.roles || []).join(', '),
+
+        m.occupation || '-',
+
+        (m.skills || []).join(', '),
+
+        (m.interests || []).join(', '),
+
+        m.membership_status || '-',
+
+        m.payment_status || '-'
+
+    ])),
+
+    styles:{
+
+        fontSize:7,
+
+        cellPadding:2,
+
+        overflow:'linebreak',
+
+        valign:'middle'
+
+    },
+
+    headStyles:{
+
+        fillColor:[242,102,34],
+
+        textColor:[255,255,255],
+
+        fontStyle:'bold'
+
+    },
+
+    alternateRowStyles:{
+
+        fillColor:[248,248,248]
+
+    },
+
+    columnStyles:{
+
+        0:{cellWidth:28},
+
+        1:{cellWidth:35},
+
+        2:{cellWidth:30},
+
+        3:{cellWidth:45},
+
+        4:{cellWidth:45},
+
+        5:{cellWidth:22},
+
+        6:{cellWidth:20}
 
     }
 
-    exportPDF() {
-
-      console.log('Export PDF');
-
-    }
+});
+doc.save(
+  `Members_Report_${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}.pdf`
+);
+}
 }
