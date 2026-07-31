@@ -8,6 +8,7 @@ import { AuthGuard } from '../../modules/auth/guards/auth.guard';
 import { AttendanceReportComponent } from './pages/attendance-report/attendance-report.component';
 import { ReportsComponent } from './pages/reports/reports.component';
 import { MembersReportComponent } from './pages/reports/members-report/members-report.component';
+import { CatalogManagementComponent } from './pages/catalog-management/catalog-management.component';
 
 const routes: Routes = [
   {
@@ -22,6 +23,7 @@ const routes: Routes = [
       { path: 'attendance-report', component: AttendanceReportComponent },
       { path: 'reports', component: ReportsComponent },
       { path: 'member-report', component: MembersReportComponent },
+      { path: 'catalog-management', component: CatalogManagementComponent},
     ]
   }
 ];

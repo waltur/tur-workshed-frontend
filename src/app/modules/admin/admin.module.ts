@@ -10,6 +10,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AttendanceReportComponent } from './pages/attendance-report/attendance-report.component';
 import { ReportsComponent } from './pages/reports/reports.component';
 import { MembersReportComponent } from './pages/reports/members-report/members-report.component';
+import { CatalogManagementComponent } from './pages/catalog-management/catalog-management.component';
 
 
 @NgModule({
@@ -20,6 +21,7 @@ import { MembersReportComponent } from './pages/reports/members-report/members-r
     AttendanceReportComponent,
     ReportsComponent,
     MembersReportComponent,
+    CatalogManagementComponent,
 
 
   ],

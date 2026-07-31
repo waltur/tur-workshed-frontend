@@ -1,0 +1,315 @@
+<div class="p-6 h-full">
+
+  <!-- HEADER -->
+
+  <div class="mb-6">
+
+    <h1 class="text-3xl font-bold text-orange-600">
+
+      Catalog Management
+
+    </h1>
+
+    <p class="text-gray-500">
+
+      Manage all volunteer catalogs from a single place.
+
+    </p>
+
+  </div>
+
+  <div class="grid grid-cols-12 gap-6">
+
+    <!-- LEFT MENU -->
+
+    <div class="col-span-3">
+
+      <div class="bg-white rounded-xl shadow">
+
+        <div class="p-4 border-b">
+
+          <h3 class="font-semibold">
+
+            Catalogs
+
+          </h3>
+
+        </div>
+
+        <div>
+
+          <button
+
+            *ngFor="let cat of catalogs"
+
+            (click)="selectCatalog(cat)"
+
+            class="w-full text-left px-4 py-3 border-b transition"
+
+            [class.bg-orange-600]="selectedCatalog===cat.key"
+            [class.text-white]="selectedCatalog===cat.key"
+            [class.hover:bg-orange-50]="selectedCatalog!==cat.key">
+
+            {{cat.title}}
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+
+    <div class="col-span-9">
+
+      <div class="bg-white rounded-xl shadow">
+
+        <!-- TOOLBAR -->
+
+        <div class="flex justify-between items-center p-4 border-b">
+
+          <input
+
+            [(ngModel)]="search"
+
+            (keyup)="filter()"
+
+            placeholder="Search..."
+
+            class="border rounded-lg px-4 py-2 w-72">
+
+          <button
+
+            class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg"
+
+            (click)="openNew()">
+
+            + New Item
+
+          </button>
+
+        </div>
+
+        <!-- TABLE -->
+
+        <table class="w-full">
+
+          <thead class="bg-gray-100">
+
+          <tr>
+
+            <th class="text-left p-3">
+
+              Name
+
+            </th>
+
+            <th class="text-left">
+
+              Description
+
+            </th>
+
+            <th>
+
+              Active
+
+            </th>
+
+            <th>
+
+              Actions
+
+            </th>
+
+          </tr>
+
+          </thead>
+
+          <tbody>
+
+          <tr
+
+            *ngFor="let item of filteredItems"
+
+            class="border-t hover:bg-orange-50">
+
+            <td class="p-3">
+
+              {{item.name}}
+
+            </td>
+
+            <td>
+
+              {{item.description || '-'}}
+
+            </td>
+
+            <td class="text-center">
+
+                            <span
+
+                              *ngIf="item.active!==false"
+
+                              class="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs">
+
+                                Active
+
+                            </span>
+
+              <span
+
+                *ngIf="item.active===false"
+
+                class="bg-red-100 text-red-700 rounded-full px-3 py-1 text-xs">
+
+                                Inactive
+
+                            </span>
+
+            </td>
+
+            <td class="text-center">
+
+              <button
+
+                class="text-blue-600 hover:underline mr-3"
+
+                (click)="openEdit(item)">
+
+                Edit
+
+              </button>
+
+              <button
+                class="text-red-600 hover:underline"
+                (click)="deleteItem(item)">
+
+                Delete
+
+              </button>
+
+            </td>
+
+          </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div
+
+    *ngIf="showModal"
+
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
+
+      <div class="px-6 py-4 border-b">
+
+        <h2 class="text-xl font-bold">
+
+          {{editing ? 'Edit Catalog' : 'New Catalog Item'}}
+
+        </h2>
+
+      </div>
+
+      <form
+
+        [formGroup]="catalogForm"
+
+        class="p-6 space-y-5">
+
+        <div>
+
+          <label class="font-semibold">
+
+            Name
+
+          </label>
+
+          <input
+
+            formControlName="name"
+
+            class="w-full border rounded-lg px-4 py-2 mt-2">
+
+        </div>
+
+        <div>
+
+          <label class="font-semibold">
+
+            Description
+
+          </label>
+
+          <textarea
+
+            rows="3"
+
+            formControlName="description"
+
+            class="w-full border rounded-lg px-4 py-2 mt-2">
+
+                </textarea>
+
+        </div>
+
+        <div>
+
+          <label class="flex items-center gap-3">
+
+            <input
+
+              type="checkbox"
+
+              formControlName="active">
+
+            Active
+
+          </label>
+
+        </div>
+
+      </form>
+
+      <div class="flex justify-end gap-3 px-6 py-4 border-t">
+
+        <button
+
+          class="px-5 py-2 rounded-lg border"
+
+          (click)="closeModal()">
+
+          Cancel
+
+        </button>
+
+        <button
+
+          class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg"
+
+          (click)="saveCatalog()">
+
+          {{editing ? 'Update' : 'Save'}}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
