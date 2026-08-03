@@ -63,6 +63,7 @@ selectedVolunteerData = {
 
 registering = false;
 
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -72,6 +73,7 @@ registering = false;
     private imageUpload: ImageUploadService,
     private paypalService: PaypalService,
     private volunteerService: VolunteerService,
+
   ) {}
 
  ngOnInit(): void {
@@ -100,6 +102,8 @@ registering = false;
      final_acknowledgement: [false, Validators.requiredTrue],
      wants_to_volunteer: [false],
      volunteer_acknowledgement: [false],
+     volunteer_agreement: [false],
+
 
      // STEP 5
     occupation: [''],
