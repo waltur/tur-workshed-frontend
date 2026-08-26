@@ -1,7 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
+import { MembershipComponent } from './pages/membership/membership.component';
 import { AuthGuard } from './modules/auth/guards/auth.guard';
+import { MyDocumentComponent } from './pages/my-document/my-document.component';
+import { DocumentManagementComponent } from './pages/document-management/document-management.component';
 
 
 
@@ -9,7 +12,11 @@ const routes: Routes = [
   { path: 'dashboard', canActivate: [AuthGuard], loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule)},
   { path: 'login',  loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule) },
   { path: '', component: HomeComponent,  },
+
   { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'membership', component: MembershipComponent },
+  { path: 'my-documents', component: MyDocumentComponent },
+  { path: 'document-management', component: DocumentManagementComponent },
   { path: 'volunteers',canActivate: [AuthGuard], loadChildren: () => import('./modules/volunteers/volunteers.module').then(m => m.VolunteersModule)},
   { path: 'contacts',   loadChildren: () => import('./modules/contacts/contacts.module').then(m => m.ContactsModule)},
   { path: 'admin',canActivate: [AuthGuard], loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule) },

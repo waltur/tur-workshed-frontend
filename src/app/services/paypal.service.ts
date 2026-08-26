@@ -22,4 +22,13 @@ export class PaypalService {
       { orderID }
     );
   }
+
+ captureRegistrationOrder(orderID: string) {
+  return this.http.post<any>(
+    `${environment.apiUrl}/paypal/capture-registration-order`,
+    {
+      orderID
+    }
+  );
+}
 }

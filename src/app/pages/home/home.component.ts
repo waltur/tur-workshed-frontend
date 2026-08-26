@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../modules/auth/services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -6,6 +8,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
 ngAfterViewInit() {
   const observer = new IntersectionObserver(
@@ -23,4 +30,9 @@ ngAfterViewInit() {
     .querySelectorAll('.animate-section')
     .forEach(el => observer.observe(el));
 }
+
+becomeMember(): void {
+  this.router.navigate(['/membership']);
+}
+
 }

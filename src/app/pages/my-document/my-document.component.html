@@ -1,0 +1,269 @@
+<div class="max-w-5xl mx-auto p-6 md:p-10">
+
+  <!-- HEADER -->
+
+  <div class="mb-10">
+
+    <div class="flex items-center gap-3 mb-3">
+
+      <button
+        routerLink="/dashboard"
+        class="text-gray-500 hover:text-orange-500">
+
+        ←
+
+      </button>
+
+      <h1 class="text-3xl font-bold text-gray-800">
+        My Document Vault
+      </h1>
+
+    </div>
+
+    <p class="text-gray-500">
+      Access the policies, agreements and documents
+      associated with your Workshed membership.
+    </p>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  <div
+    *ngIf="loading"
+    class="space-y-4">
+
+    <div
+      class="h-24 bg-gray-200
+             animate-pulse rounded-2xl">
+    </div>
+
+    <div
+      class="h-24 bg-gray-200
+             animate-pulse rounded-2xl">
+    </div>
+
+    <div
+      class="h-24 bg-gray-200
+             animate-pulse rounded-2xl">
+    </div>
+
+  </div>
+
+
+  <!-- DOCUMENT LIST -->
+
+  <div
+    *ngIf="!loading"
+    class="space-y-4">
+
+    <div
+      *ngFor="let document of documents"
+      class="bg-white rounded-2xl
+             border border-gray-100
+             shadow-sm p-5
+             hover:shadow-md transition">
+
+      <div
+        class="flex items-center
+               justify-between gap-5">
+
+        <!-- DOCUMENT INFO -->
+
+        <div
+          class="flex items-center gap-4">
+
+          <div
+            class="w-14 h-14 rounded-xl
+                   bg-orange-100
+                   flex items-center
+                   justify-center
+                   text-2xl">
+
+            📄
+
+          </div>
+
+
+          <div>
+
+            <h3
+              class="font-semibold
+                     text-gray-800">
+
+              {{ document.title }}
+
+            </h3>
+
+
+            <p
+              class="text-sm
+                     text-gray-500
+                     mt-1">
+
+              {{ document.description }}
+
+            </p>
+
+
+            <div
+              class="flex flex-wrap
+                     items-center
+                     gap-2 mt-3">
+
+              <!-- VERSION -->
+
+              <span
+                class="bg-gray-100
+                       text-gray-600
+                       px-2 py-1
+                       rounded text-xs">
+
+                Version {{ document.version }}
+
+              </span>
+
+
+              <!-- ACCEPTED -->
+
+              <span
+                *ngIf="document.accepted"
+                class="bg-green-100
+                       text-green-700
+                       px-2 py-1
+                       rounded text-xs
+                       font-medium">
+
+                ✓ Accepted
+
+              </span>
+
+
+              <!-- PENDING -->
+
+              <span
+                *ngIf="!document.accepted"
+                class="bg-yellow-100
+                       text-yellow-700
+                       px-2 py-1
+                       rounded text-xs
+                       font-medium">
+
+                ⚠ Action Required
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div
+          class="flex flex-col
+                 sm:flex-row
+                 gap-2">
+
+          <!-- VIEW -->
+
+          <button
+            *ngIf="document.file_url"
+            type="button"
+            (click)="openDocument(document)"
+            class="px-4 py-2
+                   border border-gray-300
+                   text-gray-700
+                   rounded-xl
+                   hover:bg-gray-50
+                   transition">
+
+            View
+
+          </button>
+
+
+          <!-- ACCEPT -->
+
+          <button
+            *ngIf="!document.accepted"
+            type="button"
+            (click)="acceptDocument(document)"
+            class="px-4 py-2
+                   bg-orange-500
+                   hover:bg-orange-600
+                   text-white
+                   rounded-xl
+                   font-medium
+                   transition">
+
+            Accept
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- ACCEPTED DATE -->
+
+      <div
+        *ngIf="document.accepted"
+        class="mt-4 pt-4
+               border-t border-gray-100">
+
+        <p
+          class="text-xs text-gray-500">
+
+          Accepted on
+
+          <strong>
+            {{ document.accepted_at
+            | date:'dd MMM yyyy, h:mm a' }}
+          </strong>
+
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- EMPTY -->
+
+    <div
+      *ngIf="documents.length === 0"
+      class="bg-white rounded-2xl
+             border p-10
+             text-center">
+
+      <div class="text-5xl mb-4">
+        📁
+      </div>
+
+      <h3
+        class="font-semibold
+               text-gray-800">
+
+        No documents available
+
+      </h3>
+
+      <p
+        class="text-gray-500
+               text-sm mt-2">
+
+        Your documents will appear here
+        when they become available.
+
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

@@ -11,6 +11,7 @@ export class AdminComponent {
  constructor(private router: Router) {}
 
   navigateTo(section: string): void {
+
     if (section === 'users') {
       this.router.navigate(['/admin/users']);
     }else if (section === 'groups') {
@@ -21,6 +22,11 @@ export class AdminComponent {
                 this.router.navigate(['/admin/reports']);
     }else if (section === 'catalog-management') {
                      this.router.navigate(['/admin/catalog-management']);
-   }
+   }else if (section === 'document-management') {
+
+                         this.router.navigate(['/document-management']);
+       }
+
+
   }
 }

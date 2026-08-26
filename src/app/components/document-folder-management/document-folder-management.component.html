@@ -1,0 +1,718 @@
+<div class="max-w-6xl mx-auto p-6">
+
+  <!-- HEADER -->
+
+  <div
+    class="flex flex-col md:flex-row
+    md:items-center md:justify-between
+    gap-4 mb-6">
+
+    <div>
+
+      <h1
+        class="text-2xl font-bold text-gray-800">
+
+        Document Folders
+
+      </h1>
+
+      <p
+        class="text-sm text-gray-500 mt-1">
+
+        Organize your membership documents
+        into folders.
+
+      </p>
+
+    </div>
+
+
+    <button
+      (click)="openCreate()"
+      class="
+        bg-orange-500
+        hover:bg-orange-600
+        text-white
+        px-5
+        py-2
+        rounded-lg
+        transition
+      ">
+
+      + New Folder
+
+    </button>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  <div
+    *ngIf="loading"
+    class="space-y-3">
+
+    <div
+      class="h-20 bg-gray-200
+      animate-pulse rounded-xl">
+    </div>
+
+    <div
+      class="h-20 bg-gray-200
+      animate-pulse rounded-xl">
+    </div>
+
+    <div
+      class="h-20 bg-gray-200
+      animate-pulse rounded-xl">
+    </div>
+
+  </div>
+
+
+  <!-- EMPTY -->
+
+  <div
+    *ngIf="!loading && folders.length === 0"
+    class="
+      bg-white
+      border
+      rounded-xl
+      p-10
+      text-center
+    ">
+
+    <div class="text-5xl mb-4">
+      📁
+    </div>
+
+    <h3
+      class="text-lg font-semibold
+      text-gray-700">
+
+      No folders yet
+
+    </h3>
+
+    <p
+      class="text-gray-500
+      mt-2">
+
+      Create your first folder to start
+      organizing documents.
+
+    </p>
+
+  </div>
+
+
+  <!-- FOLDER LIST -->
+
+  <div
+    *ngIf="!loading && folders.length > 0"
+    class="grid grid-cols-1
+    md:grid-cols-2 lg:grid-cols-3
+    gap-5">
+
+    <div
+      *ngFor="let folder of folders"
+      class="
+        bg-white
+        rounded-xl
+        border
+        shadow-sm
+        p-5
+        hover:shadow-md
+        transition
+      ">
+
+
+      <!-- ICON + STATUS -->
+
+      <div
+        class="flex
+        justify-between
+        items-start">
+
+        <div
+          class="
+            w-12
+            h-12
+            rounded-xl
+            bg-orange-100
+            flex
+            items-center
+            justify-center
+            text-2xl
+          ">
+
+          📁
+
+        </div>
+
+
+        <span
+
+          [ngClass]="{
+
+            'bg-green-100 text-green-700':
+              folder.is_active,
+
+            'bg-gray-100 text-gray-600':
+              !folder.is_active
+
+          }"
+
+          class="
+            px-3
+            py-1
+            rounded-full
+            text-xs
+            font-medium
+          ">
+
+          {{
+            folder.is_active
+              ? 'Active'
+              : 'Inactive'
+          }}
+
+        </span>
+
+      </div>
+
+
+      <!-- CONTENT -->
+
+      <div class="mt-4">
+
+        <h3
+          class="
+            font-semibold
+            text-gray-800
+            text-lg
+          ">
+
+          {{ folder.name }}
+
+        </h3>
+
+
+        <p
+          class="
+            text-sm
+            text-gray-500
+            mt-2
+            min-h-[40px]
+          ">
+
+          {{
+          folder.description
+          || 'No description'
+          }}
+
+        </p>
+
+      </div>
+
+
+      <!-- ACTIONS -->
+
+      <div
+        class="
+          flex
+          gap-2
+          mt-5
+          pt-4
+          border-t
+        ">
+
+        <button
+
+          (click)="openEdit(folder)"
+
+          class="
+            flex-1
+            text-sm
+            border
+            rounded-lg
+            py-2
+            hover:bg-gray-50
+          ">
+
+          Edit
+
+        </button>
+
+
+        <button
+
+          (click)="toggleStatus(folder)"
+
+          class="
+            flex-1
+            text-sm
+            border
+            rounded-lg
+            py-2
+          "
+
+          [ngClass]="
+            folder.is_active
+              ? 'text-red-600 hover:bg-red-50'
+              : 'text-green-600 hover:bg-green-50'
+          ">
+
+          {{
+          folder.is_active
+          ? 'Deactivate'
+          : 'Activate'
+          }}
+
+        </button>
+
+
+        <button
+
+          (click)="deleteFolder(folder)"
+
+          class="
+            px-3
+            border
+            rounded-lg
+            text-red-600
+            hover:bg-red-50
+          ">
+
+          🗑
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CREATE MODAL -->
+
+  <div
+
+    *ngIf="showCreateForm"
+
+    class="
+      fixed inset-0
+      bg-black/50
+      flex
+      items-center
+      justify-center
+      z-50
+      p-4
+    ">
+
+    <div
+      class="
+        bg-white
+        rounded-xl
+        shadow-xl
+        w-full
+        max-w-lg
+        p-6
+      ">
+
+      <h2
+        class="
+          text-xl
+          font-semibold
+          mb-5
+        ">
+
+        Create Folder
+
+      </h2>
+
+
+      <!-- NAME -->
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Folder Name
+
+      </label>
+
+      <input
+
+        [(ngModel)]="form.name"
+
+        type="text"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-4
+        "
+
+        placeholder="Example: Membership"
+
+      />
+
+
+      <!-- DESCRIPTION -->
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Description
+
+      </label>
+
+      <textarea
+
+        [(ngModel)]="form.description"
+
+        rows="3"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-4
+        "
+
+        placeholder="Optional description">
+
+      </textarea>
+
+
+      <!-- PARENT -->
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Parent Folder
+
+      </label>
+
+      <select
+
+        [(ngModel)]="form.parent_id"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-6
+        ">
+
+        <option
+          [ngValue]="null">
+
+          No parent folder
+
+        </option>
+
+
+        <option
+
+          *ngFor="
+            let folder
+            of getParentFolders()
+          "
+
+          [ngValue]="folder.id_folder">
+
+          {{ folder.name }}
+
+        </option>
+
+      </select>
+
+
+      <!-- ACTIONS -->
+
+      <div
+        class="
+          flex
+          justify-end
+          gap-3
+        ">
+
+        <button
+
+          (click)="closeCreate()"
+
+          [disabled]="saving"
+
+          class="
+            px-4
+            py-2
+            border
+            rounded-lg
+          ">
+
+          Cancel
+
+        </button>
+
+
+        <button
+
+          (click)="createFolder()"
+
+          [disabled]="saving"
+
+          class="
+            bg-orange-500
+            hover:bg-orange-600
+            text-white
+            px-5
+            py-2
+            rounded-lg
+          ">
+
+          {{
+          saving
+          ? 'Creating...'
+          : 'Create Folder'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- EDIT MODAL -->
+
+  <div
+
+    *ngIf="showEditForm"
+
+    class="
+      fixed inset-0
+      bg-black/50
+      flex
+      items-center
+      justify-center
+      z-50
+      p-4
+    ">
+
+    <div
+      class="
+        bg-white
+        rounded-xl
+        shadow-xl
+        w-full
+        max-w-lg
+        p-6
+      ">
+
+      <h2
+        class="
+          text-xl
+          font-semibold
+          mb-5
+        ">
+
+        Edit Folder
+
+      </h2>
+
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Folder Name
+
+      </label>
+
+      <input
+
+        [(ngModel)]="form.name"
+
+        type="text"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-4
+        "
+
+      />
+
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Description
+
+      </label>
+
+      <textarea
+
+        [(ngModel)]="form.description"
+
+        rows="3"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-4
+        ">
+
+      </textarea>
+
+
+      <label
+        class="
+          block
+          text-sm
+          font-medium
+          mb-1
+        ">
+
+        Parent Folder
+
+      </label>
+
+      <select
+
+        [(ngModel)]="form.parent_id"
+
+        class="
+          w-full
+          border
+          rounded-lg
+          px-3
+          py-2
+          mb-6
+        ">
+
+        <option
+          [ngValue]="null">
+
+          No parent folder
+
+        </option>
+
+
+        <ng-container
+          *ngFor="let folder of getParentFolders()">
+
+          <option
+
+            *ngIf="
+      !editingFolder ||
+      folder.id_folder !== editingFolder.id_folder
+    "
+
+            [ngValue]="folder.id_folder">
+
+            {{ folder.name }}
+
+          </option>
+
+        </ng-container>
+
+      </select>
+
+
+      <div
+        class="
+          flex
+          justify-end
+          gap-3
+        ">
+
+        <button
+
+          (click)="closeEdit()"
+
+          [disabled]="saving"
+
+          class="
+            px-4
+            py-2
+            border
+            rounded-lg
+          ">
+
+          Cancel
+
+        </button>
+
+
+        <button
+
+          (click)="updateFolder()"
+
+          [disabled]="saving"
+
+          class="
+            bg-orange-500
+            hover:bg-orange-600
+            text-white
+            px-5
+            py-2
+            rounded-lg
+          ">
+
+          {{
+          saving
+          ? 'Saving...'
+          : 'Save Changes'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

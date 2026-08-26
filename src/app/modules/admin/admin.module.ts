@@ -13,6 +13,9 @@ import { MembersReportComponent } from './pages/reports/members-report/members-r
 import { CatalogManagementComponent } from './pages/catalog-management/catalog-management.component';
 
 
+
+
+
 @NgModule({
   declarations: [
     AdminComponent,
@@ -22,6 +25,7 @@ import { CatalogManagementComponent } from './pages/catalog-management/catalog-m
     ReportsComponent,
     MembersReportComponent,
     CatalogManagementComponent,
+
 
 
   ],

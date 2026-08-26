@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { VolunteerService } from '../../services/volunteer.service';
 import { PaypalService } from '../../../../services/paypal.service';
 import { JobRoleService } from '../../services/job-role.service';
-import { Router } from '@angular/router';
+import { Router, NavigationStart } from '@angular/router';
 import { ImageUploadService } from '../../../../shared/services/image-upload.service';
 import Swal from 'sweetalert2';
 import { firstValueFrom } from 'rxjs';
@@ -44,6 +44,8 @@ paymentCompleted = false;
 paypalOrderId = '';
 paypalCaptureId = '';
 isMemberSelected = false;
+paypalAmount: number = 0;
+paypalCurrency: string = '';
 
 //volunteer
 
@@ -62,6 +64,12 @@ selectedVolunteerData = {
 };
 
 registering = false;
+
+
+registrationCompleted = false;
+private pendingNavigationUrl: string | null = null;
+private allowNavigation = false;
+membershipAmount = 1;
 
 
   constructor(
@@ -132,6 +140,99 @@ registering = false;
        this.registerError = 'Failed to load roles from server.';
      }
    });
+ // ============================================
+ // PROTEGER NAVEGACIÓN DESPUÉS DEL PAGO
+ // ============================================
+
+ this.router.events.subscribe(event => {
+
+   if (!(event instanceof NavigationStart)) {
+     return;
+   }
+
+   // Si ya terminó el registro, puede navegar normalmente
+   if (this.allowNavigation || this.registrationCompleted) {
+     return;
+   }
+
+   // Solo bloquear si:
+   // 1. Ya pagó
+   // 2. Todavía no terminó el registro
+   if (this.paymentCompleted && !this.registrationCompleted) {
+
+     // Evitamos que Angular complete inmediatamente la navegación
+     this.allowNavigation = true;
+
+     this.pendingNavigationUrl = event.url;
+
+     // Regresamos a la página actual
+     setTimeout(() => {
+
+       this.allowNavigation = false;
+
+       Swal.fire({
+
+         icon: 'warning',
+
+         title: 'Registration not completed',
+
+         html: `
+           <p class="text-gray-700 mb-3">
+             Your membership payment has already been completed.
+           </p>
+
+           <p class="text-gray-700">
+             You still need to click
+             <strong>"Complete Registration"</strong>
+             to finish creating your account.
+           </p>
+
+           <p class="text-red-600 font-semibold mt-3">
+             If you leave this page, your registration will not be completed.
+           </p>
+         `,
+
+         showCancelButton: true,
+
+         confirmButtonText: 'Stay and Complete Registration',
+
+         cancelButtonText: 'Leave Anyway',
+
+         confirmButtonColor: '#16a34a',
+
+         cancelButtonColor: '#dc2626',
+
+         allowOutsideClick: false,
+
+         allowEscapeKey: false
+
+       }).then(result => {
+
+         if (result.isConfirmed) {
+
+           // El usuario quiere quedarse
+           return;
+
+         }
+
+         // El usuario confirmó que quiere salir
+         this.allowNavigation = true;
+
+         if (this.pendingNavigationUrl) {
+
+           this.router.navigateByUrl(
+             this.pendingNavigationUrl
+           );
+
+         }
+
+       });
+
+     });
+
+   }
+
+ });
  }
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
@@ -164,7 +265,7 @@ loadPaypalButtons(): void {
     createOrder: async () => {
 
       const response = await firstValueFrom(
-        this.paypalService.createOrder(1)
+        this.paypalService.createOrder(this.membershipAmount)
       );
 
       return response.id;
@@ -177,7 +278,8 @@ loadPaypalButtons(): void {
         this.processingPayment = true;
 
         const result = await firstValueFrom(
-          this.paypalService.captureOrder(data.orderID)
+         // this.paypalService.captureOrder(data.orderID)
+        this.paypalService.captureRegistrationOrder(data.orderID)
         );
 
         this.paypalOrderId = result.orderID;
@@ -189,7 +291,7 @@ loadPaypalButtons(): void {
         Swal.fire({
           icon: 'success',
           title: 'Payment successful',
-          text: 'Membership activated',
+          text: 'Payment successful. Please click "Complete Registration" to finish creating your account.',
           confirmButtonColor: '#e91e63'
         });
 
@@ -236,6 +338,117 @@ loadPaypalButtons(): void {
       console.log('PayPal Buttons Rendered');
 
     });
+
+}
+@HostListener('window:beforeunload', ['$event'])
+handleBeforeUnload(event: BeforeUnloadEvent): void {
+
+  if (
+    this.paymentCompleted &&
+    !this.registrationCompleted
+  ) {
+
+    event.preventDefault();
+
+    event.returnValue =
+      'Your payment has been completed. You must complete your registration before leaving this page.';
+
+  }
+
+}
+
+onPaymentSuccess(payment: any): void {
+
+  console.log('PayPal payment received:', payment);
+
+  this.paypalOrderId = payment.orderID;
+  this.paypalCaptureId = payment.captureID;
+  this.paypalAmount = payment.amount;
+  this.paypalCurrency = payment.currency;
+
+  this.paymentCompleted = true;
+  this.processingPayment = false;
+
+
+  // ============================================
+  // GUARDAR REGISTRO PENDIENTE
+  // ============================================
+
+  const pendingRegistration = {
+
+    form: this.registerForm.value,
+
+    roles: this.selectedRoleIds,
+
+    job_roles: this.selectedJobRoleIds,
+
+    interests:
+      this.selectedVolunteerData.interests,
+
+    skills:
+      this.selectedVolunteerData.skills,
+
+    certifications:
+      this.selectedVolunteerData.certifications,
+
+    paypal_order_id:
+      this.paypalOrderId,
+
+    paypal_capture_id:
+      this.paypalCaptureId,
+
+    paypal_amount:
+      this.paypalAmount,
+
+    paypal_currency:
+      this.paypalCurrency,
+
+    createdAt:
+      new Date().toISOString()
+
+  };
+
+
+  localStorage.setItem(
+    'pending_registration',
+    JSON.stringify(pendingRegistration)
+  );
+
+
+  // ============================================
+  // MENSAJE
+  // ============================================
+
+  Swal.fire({
+
+    icon: 'success',
+
+    title: 'Payment successful',
+
+    html: `
+      <p>Your membership payment has been successfully verified.</p>
+
+      <p class="mt-3 font-semibold">
+        Your registration is not finished yet.
+      </p>
+
+      <p class="mt-2 text-sm text-gray-600">
+        Please click <strong>"Complete Registration"</strong>
+        to create your account.
+      </p>
+    `,
+
+    confirmButtonText:
+      'Continue Registration',
+
+    confirmButtonColor:
+      '#16a34a',
+
+    allowOutsideClick: false,
+
+    allowEscapeKey: false
+
+  });
 
 }
 validatePhone(control: any) {
@@ -350,30 +563,56 @@ if (invalidFields.length > 0) {
 
   });
   console.log(formData);
-  this.authService.register(formData).subscribe({
-    next: () => {
-      this.loading = false; // ✅ Finaliza loading
-      Swal.close();
-      Swal.fire({
-        icon: 'success',
-        title: 'Registration Complete',
-        text: 'You can now log in.',
-        confirmButtonColor: '#e91e63'
-      }).then(() => {
-        this.router.navigate(['/login/email-sent'], { queryParams: { email: formValue.email } });
-      });
-    },
-    error: () => {
-      this.loading = false; // ❌ Finaliza loading si ocurre error
-      Swal.close();
-      Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: 'Something went wrong. Please try again later.',
-        confirmButtonColor: '#e91e63'
-      });
-    }
+this.authService.register(formData).subscribe({
+
+next: () => {
+
+  this.registrationCompleted = true;
+
+  this.loading = false;
+  this.allowNavigation = true;
+
+  // El registro ya terminó correctamente
+  localStorage.removeItem('pending_registration');
+
+  Swal.close();
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Registration Complete',
+    text: 'You can now log in.',
+    confirmButtonColor: '#e91e63'
+  }).then(() => {
+
+    this.router.navigate(
+      ['/login/email-sent'],
+      {
+        queryParams: {
+          email: formValue.email
+        }
+      }
+    );
+
   });
+
+},
+
+  error: () => {
+
+    this.loading = false;
+
+    Swal.close();
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Registration Failed',
+      text: 'Something went wrong. Please try again later.',
+      confirmButtonColor: '#e91e63'
+    });
+
+  }
+
+});
 }
 
 
@@ -612,11 +851,52 @@ markFieldsAsTouched(fields: string[]) {
   });
 }
 backStep(): void {
-  this.step = 1;
- // const wantsToVolunteer = this.registerForm.get('wants_to_volunteer')?.value;
- // if (wantsToVolunteer === true || wantsToVolunteer === false) {
- //   this.wantsToVolunteerLocked = true;
- // }
+
+  // ============================================
+  // PROTEGER PAGO YA REALIZADO
+  // ============================================
+
+  if (
+    this.paymentCompleted &&
+    !this.registrationCompleted
+  ) {
+
+    Swal.fire({
+      icon: 'warning',
+      title: 'Payment already completed',
+      html: `
+        <p class="mb-3">
+          Your membership payment has already been completed.
+        </p>
+
+        <p class="font-semibold text-red-600">
+          You must complete your registration before leaving this page.
+        </p>
+
+        <p class="mt-3 text-sm text-gray-500">
+          Please click <strong>"Complete Registration"</strong>
+          to finish creating your account.
+        </p>
+      `,
+      confirmButtonText: 'Complete Registration',
+      confirmButtonColor: '#16a34a',
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+
+    return;
+  }
+
+  // ============================================
+  // COMPORTAMIENTO NORMAL
+  // ============================================
+
+  if (this.step > 1) {
+
+    this.step--;
+
+  }
+
 }
 toggleRole(roleId: number): void {
   console.log("toggleRole");

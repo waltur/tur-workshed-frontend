@@ -13,7 +13,13 @@ import { PayPalButtonComponent } from './components/payPal/pay-pal-button/pay-pa
 
 import { provideNgxMask } from 'ngx-mask';
 import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
-
+import { MembershipComponent } from './pages/membership/membership.component';
+import { SharedModule } from 'src/app/shared/shared.module';
+import { MyDocumentComponent } from './pages/my-document/my-document.component';
+import { DocumentManagementComponent } from './pages/document-management/document-management.component';
+import { FormsModule } from '@angular/forms';
+import { DocumentFolderManagementComponent } from './components/document-folder-management/document-folder-management.component';
+import { MatMenuModule } from '@angular/material/menu';
 
 
 
@@ -25,6 +31,10 @@ import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
     FooterComponent,
     HomeComponent,
     PayPalButtonComponent,
+    MembershipComponent,
+    MyDocumentComponent,
+    DocumentManagementComponent,
+    DocumentFolderManagementComponent,
 
 
   ],
@@ -33,7 +43,11 @@ import { TokenRefreshInterceptor } from './services/token-refresh.interceptor';
     AppRoutingModule,
     RouterModule,
     HttpClientModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    SharedModule,
+    FormsModule,
+    MatMenuModule
+
   ],
   providers: [
     provideNgxMask(),

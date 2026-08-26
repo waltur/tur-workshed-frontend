@@ -15,6 +15,43 @@
     </button>
   </div>
   <p class="text-gray-700 mb-6">Email: {{ email }}</p>
+  <div class="mb-8">
+    <div
+      class="bg-white rounded-2xl shadow-sm border border-gray-100
+           p-6 hover:shadow-md transition cursor-pointer"
+      routerLink="/my-documents">
+
+      <div class="flex items-center justify-between">
+
+        <div class="flex items-center gap-4">
+
+          <div
+            class="w-12 h-12 rounded-xl bg-orange-100
+                 flex items-center justify-center text-2xl">
+            📁
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-gray-800 text-lg">
+              My Document Vault
+            </h3>
+
+            <p class="text-sm text-gray-500 mt-1">
+              View the policies, agreements and documents
+              associated with your membership.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="text-orange-500 text-xl">
+          →
+        </div>
+
+      </div>
+
+    </div>
+  </div>
   <h3 class="font-semibold mb-3">My Events</h3>
 <!-- <select
     [(ngModel)]="selectedYear"
