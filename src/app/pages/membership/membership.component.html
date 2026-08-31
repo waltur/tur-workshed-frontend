@@ -138,6 +138,7 @@
 
 
         <app-paypal-payment
+          [isRegistrationPayment]="false"
           (paymentSuccess)="onPaymentSuccess($event)">
         </app-paypal-payment>
 

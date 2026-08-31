@@ -68,6 +68,8 @@
 
       <!-- RIGHT -->
 
+      <!-- RIGHT -->
+
       <div>
 
         <div class="border rounded-xl p-6 bg-gray-50">
@@ -89,74 +91,90 @@
             🔒 SSL Encrypted Connection
           </div>
 
-          <!-- PAYPAL -->
 
-          <div id="paypal-button-container"></div>
+          <!-- ========================= -->
+          <!-- PAYPAL BUTTON -->
+          <!-- ========================= -->
 
-        </div>
+          <div *ngIf="!paymentCompleted">
 
+            <div
+              *ngIf="!processingPayment"
+              id="paypal-button-container">
+            </div>
 
-        <!-- PROCESSING -->
-
-        <div
-          *ngIf="processingPayment"
-          class="mt-6 text-center">
-
-          <div
-            class="inline-block w-10 h-10
-                   border-4 border-blue-500
-                   border-dashed rounded-full
-                   animate-spin">
           </div>
 
-          <p class="mt-3">
-            Processing payment...
-          </p>
 
-        </div>
+          <!-- ========================= -->
+          <!-- PROCESSING -->
+          <!-- ========================= -->
 
+          <div
+            *ngIf="processingPayment && !paymentCompleted"
+            class="mt-6 text-center">
 
-        <!-- SUCCESS -->
-
-        <div
-          *ngIf="paymentCompleted"
-          class="mt-6 bg-green-50
-                 border border-green-300
-                 rounded-xl p-5">
-
-          <h4 class="font-bold text-green-700 mb-4">
-            ✅ Payment Successful
-          </h4>
-
-          <div class="space-y-2 text-sm">
-
-            <div class="flex justify-between">
-
-              <span>Transaction</span>
-
-              <strong>
-                {{ paypalCaptureId }}
-              </strong>
-
+            <div
+              class="inline-block w-10 h-10
+               border-4 border-blue-500
+               border-dashed rounded-full
+               animate-spin">
             </div>
 
-            <div class="flex justify-between">
+            <p class="mt-3">
+              Processing payment...
+            </p>
 
-              <span>Status</span>
+          </div>
 
-              <strong class="text-green-700">
-                Completed
-              </strong>
 
-            </div>
+          <!-- ========================= -->
+          <!-- PAYMENT SUCCESS -->
+          <!-- ========================= -->
 
-            <div class="flex justify-between">
+          <div
+            *ngIf="paymentCompleted"
+            class="mt-6 bg-green-50
+             border border-green-300
+             rounded-xl p-5">
 
-              <span>Total</span>
+            <h4 class="font-bold text-green-700 mb-4">
+              ✅ Payment Successful
+            </h4>
 
-              <strong>
-                AUD ${{ membershipAmount.toFixed(2) }}
-              </strong>
+            <div class="space-y-2 text-sm">
+
+              <div class="flex justify-between">
+
+                <span>Transaction</span>
+
+                <strong>
+                  {{ paypalCaptureId }}
+                </strong>
+
+              </div>
+
+
+              <div class="flex justify-between">
+
+                <span>Status</span>
+
+                <strong class="text-green-700">
+                  Completed
+                </strong>
+
+              </div>
+
+
+              <div class="flex justify-between">
+
+                <span>Total</span>
+
+                <strong>
+                  AUD ${{ membershipAmount.toFixed(2) }}
+                </strong>
+
+              </div>
 
             </div>
 

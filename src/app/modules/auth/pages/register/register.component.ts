@@ -238,10 +238,60 @@ togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
 }
 
+updateVolunteerDocumentValidator(): void {
+
+  const control =
+    this.registerForm.get('volunteer_agreement');
+
+  if (!control) {
+    return;
+  }
+
+  if (this.isVolunteer) {
+
+    control.setValidators([
+      Validators.requiredTrue
+    ]);
+
+  } else {
+
+    control.clearValidators();
+
+    control.setValue(false, {
+      emitEvent: false
+    });
+
+  }
+
+  control.updateValueAndValidity();
+
+}
 
 loadPaypalButtons(): void {
 
-  // Evita renderizar más de una vez
+  // ==========================================
+  // 1. SI YA PAGÓ, NO HACER NADA
+  // ==========================================
+  if (this.paymentCompleted) {
+    console.log('Payment already completed. PayPal blocked.');
+    return;
+  }
+
+  // ==========================================
+  // 2. SI YA SE RENDERIZÓ, NO DUPLICAR
+  // ==========================================
+  if (this.paypalRendered) {
+    console.log('PayPal already rendered.');
+    return;
+  }
+
+  // ==========================================
+  // 3. SI ESTÁ PROCESANDO, BLOQUEAR
+  // ==========================================
+  if (this.processingPayment) {
+    console.log('Payment is currently processing.');
+    return;
+  }
 
   const paypal = (window as any).paypal;
 
@@ -250,22 +300,38 @@ loadPaypalButtons(): void {
     return;
   }
 
-  const container = document.getElementById('paypal-button-container');
+  const container = document.getElementById(
+    'paypal-button-container'
+  );
 
   if (!container) {
     console.error('paypal-button-container not found');
     return;
   }
 
-
   container.innerHTML = '';
+
+  // IMPORTANTE: marcar antes de renderizar
+  this.paypalRendered = true;
 
   paypal.Buttons({
 
     createOrder: async () => {
 
+      // Protección adicional
+      if (
+        this.processingPayment ||
+        this.paymentCompleted
+      ) {
+        throw new Error(
+          'Payment already processing or completed'
+        );
+      }
+
       const response = await firstValueFrom(
-        this.paypalService.createOrder(this.membershipAmount)
+        this.paypalService.createOrder(
+          this.membershipAmount
+        )
       );
 
       return response.id;
@@ -273,19 +339,46 @@ loadPaypalButtons(): void {
 
     onApprove: async (data: any) => {
 
+      // ==========================================
+      // BLOQUEAR DOBLE CAPTURA
+      // ==========================================
+      if (
+        this.processingPayment ||
+        this.paymentCompleted
+      ) {
+        console.log('Duplicate payment blocked.');
+        return;
+      }
+
       try {
 
+        // Bloquear inmediatamente
         this.processingPayment = true;
 
         const result = await firstValueFrom(
-         // this.paypalService.captureOrder(data.orderID)
-        this.paypalService.captureRegistrationOrder(data.orderID)
+          this.paypalService.captureRegistrationOrder(
+            data.orderID
+          )
         );
 
         this.paypalOrderId = result.orderID;
         this.paypalCaptureId = result.captureID;
 
+        // ==========================================
+        // MARCAR COMO PAGADO ANTES DE CONTINUAR
+        // ==========================================
         this.paymentCompleted = true;
+
+        // Vaciar botón físicamente
+        const paypalContainer =
+          document.getElementById(
+            'paypal-button-container'
+          );
+
+        if (paypalContainer) {
+          paypalContainer.innerHTML = '';
+        }
+
         this.processingPayment = false;
 
         Swal.fire({
@@ -297,7 +390,17 @@ loadPaypalButtons(): void {
 
       } catch (error) {
 
+        console.error(
+          'PayPal capture error:',
+          error
+        );
+
         this.processingPayment = false;
+
+        // Permitir reintentar solo si NO pagó
+        if (!this.paymentCompleted) {
+          this.paypalRendered = false;
+        }
 
         Swal.fire({
           icon: 'error',
@@ -312,6 +415,8 @@ loadPaypalButtons(): void {
 
     onCancel: () => {
 
+      this.processingPayment = false;
+
       Swal.fire({
         icon: 'info',
         title: 'Payment cancelled'
@@ -323,6 +428,12 @@ loadPaypalButtons(): void {
 
       console.error(err);
 
+      this.processingPayment = false;
+
+      if (!this.paymentCompleted) {
+        this.paypalRendered = false;
+      }
+
       Swal.fire({
         icon: 'error',
         title: 'PayPal Error',
@@ -332,14 +443,26 @@ loadPaypalButtons(): void {
 
     }
 
-  }).render('#paypal-button-container')
-    .then(() => {
+  })
+  .render('#paypal-button-container')
+  .then(() => {
 
-      console.log('PayPal Buttons Rendered');
+    console.log('PayPal Buttons Rendered');
 
-    });
+  })
+  .catch((error: any) => {
+
+    console.error(
+      'Error rendering PayPal:',
+      error
+    );
+
+    this.paypalRendered = false;
+
+  });
 
 }
+
 @HostListener('window:beforeunload', ['$event'])
 handleBeforeUnload(event: BeforeUnloadEvent): void {
 
@@ -687,6 +810,7 @@ nextStep(): void {
     this.isVolunteer = this.selectedRoleIds.includes(this.volunteerRoleId!);
 
     if (this.isVolunteer) {
+      this.updateVolunteerDocumentValidator();
       this.jobRoleService.getVolunteerFunctions().subscribe(data => {
         this.jobRoles = data;
         this.step = 3;
@@ -739,9 +863,18 @@ nextStep(): void {
 
          'accept_health_full',
 
-         'final_acknowledgement'
+         'final_acknowledgement',
+
+
 
      ];
+       if (this.isVolunteer) {
+
+         step4Fields.push(
+           'volunteer_agreement'
+         );
+
+       }
 
      const invalidFields = step4Fields.filter(field => {
 
@@ -791,11 +924,11 @@ nextStep(): void {
 
          this.step = 6;
 
-         setTimeout(()=>{
+       /*  setTimeout(()=>{
 
              this.loadPaypalButtons();
 
-         });
+         });*/
 
      }else{
 
@@ -829,11 +962,11 @@ nextStep(): void {
 
          this.step=6;
 
-         setTimeout(()=>{
+       /*  setTimeout(()=>{
 
              this.loadPaypalButtons();
 
-         });
+         });*/
 
      }else{
 

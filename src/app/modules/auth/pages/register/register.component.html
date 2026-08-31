@@ -540,6 +540,7 @@
     <div class="bg-white rounded-xl shadow-xl overflow-hidden">
 
       <app-paypal-payment
+        [isRegistrationPayment]="true"
         (paymentSuccess)="onPaymentSuccess($event)">
       </app-paypal-payment>
 
