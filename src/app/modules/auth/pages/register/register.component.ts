@@ -71,6 +71,9 @@ private pendingNavigationUrl: string | null = null;
 private allowNavigation = false;
 membershipAmount = 1;
 
+registrationOrigin: 'member' | 'volunteer' | null = null;
+previousStep: number | null = null;
+
 
   constructor(
     private fb: FormBuilder,
@@ -758,9 +761,18 @@ checkUsername(): void {
     this.usernameInUse = res.exists;
   });
 }
+
 nextStep(): void {
- this.isMemberSelected=false;
-  // ✅ STEP 1
+
+  // No dejar valores anteriores
+  this.isMemberSelected = false;
+
+
+  // ============================================
+  // STEP 1
+  // DATOS PERSONALES
+  // ============================================
+
   if (this.step === 1) {
 
     const step1Fields = [
@@ -774,7 +786,6 @@ nextStep(): void {
       'age_range',
       'photo_permission',
       'community_preference'
-
     ];
 
     const invalidFields = step1Fields.filter(field => {
@@ -783,10 +794,14 @@ nextStep(): void {
     });
 
     if (invalidFields.length > 0) {
+
       Swal.fire({
         icon: 'warning',
         title: 'Incomplete form',
-        html: `Please complete:<br><strong>${invalidFields.join(', ')}</strong>`,
+        html: `
+          Please complete:<br>
+          <strong>${invalidFields.join(', ')}</strong>
+        `,
         confirmButtonColor: '#e91e63'
       });
 
@@ -798,194 +813,245 @@ nextStep(): void {
     return;
   }
 
-  // ✅ STEP 2
+
+  // ============================================
+  // STEP 2
+  // ROLES
+  // ============================================
+
   if (this.step === 2) {
+
     if (this.selectedRoleIds.length === 0) {
+
       Swal.fire({
         icon: 'warning',
         title: 'No role selected',
         text: 'Please select at least one role.',
         confirmButtonColor: '#e91e63'
       });
+
       return;
     }
 
-    this.isVolunteer = this.selectedRoleIds.includes(this.volunteerRoleId!);
+    // Determinar si es voluntario
+    this.isVolunteer =
+      this.selectedRoleIds.includes(this.volunteerRoleId!);
+
+    // Determinar si es miembro
+    const isMember =
+      this.selectedRoleIds.includes(this.memberRoleId!);
+
+    this.isMemberSelected = isMember;
+
+
+    // --------------------------------------------
+    // GUARDAR EL ORIGEN DEL FLUJO
+    // --------------------------------------------
 
     if (this.isVolunteer) {
+
+      this.registrationOrigin = 'volunteer';
+
       this.updateVolunteerDocumentValidator();
-      this.jobRoleService.getVolunteerFunctions().subscribe(data => {
-        this.jobRoles = data;
-        this.step = 3;
-      });
-    } else {
-      this.step = 4;
+
+      this.jobRoleService.getVolunteerFunctions()
+        .subscribe(data => {
+
+          this.jobRoles = data;
+
+          this.step = 3;
+        });
+
+      return;
     }
+
+
+    // No voluntario
+    this.registrationOrigin = 'member';
+
+    this.step = 4;
+
     return;
   }
 
-  // ✅ STEP 3
+
+  // ============================================
+  // STEP 3
+  // FUNCIONES DEL VOLUNTARIO
+  // ============================================
+
   if (this.step === 3) {
+
     if (this.selectedJobRoleIds.length === 0) {
+
       Swal.fire({
         icon: 'warning',
         title: 'No volunteer function selected',
         text: 'Please select at least one volunteer task.',
         confirmButtonColor: '#e91e63'
       });
+
       return;
     }
 
     this.step = 4;
+
     return;
   }
 
-  // ✅ STEP 4 (VALIDACIÓN FINAL)
- // ✅ STEP 4 (VALIDACIÓN FINAL)
 
- if (this.step === 4) {
+  // ============================================
+  // STEP 4
+  // POLÍTICAS / CONFIRMACIONES
+  // ============================================
 
-     this.registerForm.updateValueAndValidity();
+  if (this.step === 4) {
 
-     const isMember =
-         this.selectedRoleIds.includes(this.memberRoleId!);
+    this.registerForm.updateValueAndValidity();
 
-     this.isMemberSelected = isMember;
+    const isMember =
+      this.selectedRoleIds.includes(this.memberRoleId!);
 
-     const step4Fields = [
+    this.isMemberSelected = isMember;
 
-         'confirm_age',
 
-         'accept_membership_policy',
+    const step4Fields = [
 
-         'accept_consent',
+      'confirm_age',
+      'accept_membership_policy',
+      'accept_consent',
+      'accept_privacy_full',
+      'accept_code_full',
+      'accept_health_full',
+      'final_acknowledgement'
 
-         'accept_privacy_full',
+    ];
 
-         'accept_code_full',
 
-         'accept_health_full',
+    if (this.isVolunteer) {
 
-         'final_acknowledgement',
+      step4Fields.push(
+        'volunteer_agreement'
+      );
+    }
 
 
+    const invalidFields = step4Fields.filter(field => {
 
-     ];
-       if (this.isVolunteer) {
+      const control = this.registerForm.get(field);
 
-         step4Fields.push(
-           'volunteer_agreement'
-         );
+      return control && control.invalid;
+    });
 
-       }
 
-     const invalidFields = step4Fields.filter(field => {
+    if (invalidFields.length > 0) {
 
-         const control = this.registerForm.get(field);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete confirmation',
+        text: 'You must accept all policies to continue.',
+        confirmButtonColor: '#e91e63'
+      });
 
-         return control && control.invalid;
+      this.markFieldsAsTouched(step4Fields);
 
-     });
+      return;
+    }
 
-     if (invalidFields.length > 0) {
 
-         Swal.fire({
+    // --------------------------------------------
+    // VOLUNTARIO
+    // --------------------------------------------
 
-             icon:'warning',
+    if (this.isVolunteer) {
 
-             title:'Incomplete confirmation',
+      this.step = 5;
 
-             text:'You must accept all policies to continue.',
+      return;
+    }
 
-             confirmButtonColor:'#e91e63'
 
-         });
+    // --------------------------------------------
+    // NO VOLUNTARIO
+    // --------------------------------------------
 
-         this.markFieldsAsTouched(step4Fields);
+    if (isMember) {
 
-         return;
+      this.registrationOrigin = 'member';
 
-     }
+      // Guardamos desde dónde entramos a pago
+      this.previousStep = 4;
 
-     //---------------------------------------
-     // NEW VOLUNTEER STEP
-     //---------------------------------------
+      this.step = 6;
 
-     if(this.isVolunteer){
+    } else {
 
-         this.step = 5;
+      this.submit();
+    }
 
-         return;
+    return;
+  }
 
-     }
 
-     //---------------------------------------
-     // NON VOLUNTEERS
-     //---------------------------------------
+  // ============================================
+  // STEP 5
+  // INFORMACIÓN ADICIONAL DEL VOLUNTARIO
+  // ============================================
 
-     if(isMember){
+  if (this.step === 5) {
 
-         this.step = 6;
+    const isMember =
+      this.selectedRoleIds.includes(this.memberRoleId!);
 
-       /*  setTimeout(()=>{
+    this.isMemberSelected = isMember;
 
-             this.loadPaypalButtons();
 
-         });*/
+    if (
+      !this.selectedVolunteerData ||
+      !this.selectedVolunteerData.interests ||
+      this.selectedVolunteerData.interests.length === 0
+    ) {
 
-     }else{
+      Swal.fire({
+        icon: 'warning',
+        title: 'Select an area of interest',
+        text: 'Please choose at least one area where you would like to volunteer.'
+      });
 
-         this.submit();
+      return;
+    }
 
-     }
 
- }
- if(this.step==5){
+    // --------------------------------------------
+    // VOLUNTARIO + MIEMBRO
+    // --------------------------------------------
 
-     const isMember =
-         this.selectedRoleIds.includes(this.memberRoleId!);
+    if (isMember) {
 
-       if (this.selectedVolunteerData.interests.length === 0) {
+      this.registrationOrigin = 'volunteer';
 
-         Swal.fire({
+      // El pago viene desde STEP 5
+      this.previousStep = 5;
 
-           icon: 'warning',
+      this.step = 6;
 
-           title: 'Select an area of interest',
+    } else {
 
-           text: 'Please choose at least one area where you would like to volunteer.'
+      // Voluntario que NO es miembro
+      this.submit();
+    }
 
-         });
-
-         return;
-
-       }
-
-     if(isMember){
-
-         this.step=6;
-
-       /*  setTimeout(()=>{
-
-             this.loadPaypalButtons();
-
-         });*/
-
-     }else{
-
-         this.submit();
-
-     }
-
-     return;
-
- }
+    return;
+  }
 }
+
+
 markFieldsAsTouched(fields: string[]) {
   fields.forEach(field => {
     this.registerForm.get(field)?.markAsTouched();
   });
 }
+
 backStep(): void {
 
   // ============================================
@@ -1023,17 +1089,108 @@ backStep(): void {
     return;
   }
 
+
   // ============================================
-  // COMPORTAMIENTO NORMAL
+  // STEP 6
+  // PAGO
   // ============================================
 
-  if (this.step > 1) {
+  if (this.step === 6) {
 
-    this.step--;
+    // Si guardamos el paso desde donde
+    // entramos al pago, usamos ese valor.
+    if (this.previousStep !== null) {
 
+      this.step = this.previousStep;
+
+      return;
+    }
+
+
+    // Fallback por seguridad
+    if (this.isVolunteer) {
+
+      this.step = 5;
+
+    } else {
+
+      this.step = 4;
+    }
+
+    return;
   }
 
+
+  // ============================================
+  // STEP 5
+  // VOLUNTARIO
+  // ============================================
+
+  if (this.step === 5) {
+
+    this.step = 4;
+
+    return;
+  }
+
+
+  // ============================================
+  // STEP 4
+  // POLÍTICAS
+  // ============================================
+
+  if (this.step === 4) {
+
+    if (this.isVolunteer) {
+
+      this.step = 3;
+
+    } else {
+
+      this.step = 2;
+    }
+
+    return;
+  }
+
+
+  // ============================================
+  // STEP 3
+  // FUNCIONES VOLUNTARIO
+  // ============================================
+
+  if (this.step === 3) {
+
+    this.step = 2;
+
+    return;
+  }
+
+
+  // ============================================
+  // STEP 2
+  // ROLES
+  // ============================================
+
+  if (this.step === 2) {
+
+    this.step = 1;
+
+    return;
+  }
+
+
+  // ============================================
+  // STEP 1
+  // No hacer nada
+  // ============================================
+
+  if (this.step === 1) {
+    return;
+  }
 }
+
+
 toggleRole(roleId: number): void {
   console.log("toggleRole");
   const index = this.selectedRoleIds.indexOf(roleId);
