@@ -86,7 +86,9 @@ membershipAmount = 1;
 
  ngOnInit(): void {
    this.registerForm = this.fb.group({
-     name: ['', Validators.required],
+    // name: ['', Validators.required],
+     first_name: ['', [Validators.required, Validators.minLength(2)]],
+     last_name: ['', [Validators.required, Validators.minLength(2)]],
      phone_number: ['', [Validators.required, this.validatePhone]],
      email: ['', [Validators.required, Validators.email]],
      emergency_contact: ['', [this.validatePhone]],
@@ -762,7 +764,8 @@ nextStep(): void {
   if (this.step === 1) {
 
     const step1Fields = [
-      'name',
+      'first_name',
+      'last_name',
       'phone_number',
       'email',
       'emergency_contact',
@@ -1065,7 +1068,9 @@ toggleJobRole(jobId: number): void {
 }
 getInvalidFieldNames(): string[] {
   const fieldLabels: Record<string, string> = {
-    name: 'Full Name',
+   // name: 'Full Name',
+    first_name: 'First Name',
+    last_name: 'Last Name',
     phone_number: 'Phone Number',
     email: 'Email',
     emergency_contact: 'Emergency Contact',

@@ -31,10 +31,64 @@
     <!-- ================= STEP 1 ================= -->
     <form *ngIf="step === 1" [formGroup]="registerForm">
 
-      <label class="block mb-4">
+     <!-- <label class="block mb-4">
         <span class="text-sm text-gray-700">Full Name</span>
         <input type="text" formControlName="name" class="input-style" />
-      </label>
+      </label>-->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+        <!-- FIRST NAME -->
+        <label class="block">
+    <span class="text-sm text-gray-700">
+      First Name
+    </span>
+
+          <input
+            type="text"
+            formControlName="first_name"
+            class="input-style"
+            placeholder="Enter your first name"
+            autocomplete="given-name"
+          />
+
+          <div
+            *ngIf="
+        registerForm.get('first_name')?.touched &&
+        registerForm.get('first_name')?.invalid
+      "
+            class="text-red-600 text-xs mt-1"
+          >
+            First name is required.
+          </div>
+        </label>
+
+
+        <!-- LAST NAME -->
+        <label class="block">
+    <span class="text-sm text-gray-700">
+      Last Name
+    </span>
+
+          <input
+            type="text"
+            formControlName="last_name"
+            class="input-style"
+            placeholder="Enter your last name"
+            autocomplete="family-name"
+          />
+
+          <div
+            *ngIf="
+        registerForm.get('last_name')?.touched &&
+        registerForm.get('last_name')?.invalid
+      "
+            class="text-red-600 text-xs mt-1"
+          >
+            Last name is required.
+          </div>
+        </label>
+
+      </div>
 
       <phone-input
         label="Phone Number"
@@ -178,7 +232,7 @@
           📄 Member Participation Informed Consent
         </a>
 
-        <a href="assets/docs/Membership-Policy.pdf" target="_blank" class="block hover:underline">
+        <a href="assets/docs/Privacy-Policy.pdf" target="_blank" class="block hover:underline">
           📄 Privacy Policy
         </a>
 

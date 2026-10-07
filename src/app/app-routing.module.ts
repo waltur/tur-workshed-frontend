@@ -5,7 +5,7 @@ import { MembershipComponent } from './pages/membership/membership.component';
 import { AuthGuard } from './modules/auth/guards/auth.guard';
 import { MyDocumentComponent } from './pages/my-document/my-document.component';
 import { DocumentManagementComponent } from './pages/document-management/document-management.component';
-
+import { MyQrComponent } from './modules/dashboard/pages/my-qr/my-qr.component';
 
 
 const routes: Routes = [
@@ -16,6 +16,7 @@ const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'membership', component: MembershipComponent },
   { path: 'my-documents', component: MyDocumentComponent },
+  { path: 'my-qr', component: MyQrComponent},
   { path: 'document-management', component: DocumentManagementComponent },
   { path: 'volunteers',canActivate: [AuthGuard], loadChildren: () => import('./modules/volunteers/volunteers.module').then(m => m.VolunteersModule)},
   { path: 'contacts',   loadChildren: () => import('./modules/contacts/contacts.module').then(m => m.ContactsModule)},

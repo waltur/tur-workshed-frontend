@@ -97,42 +97,11 @@ onPaymentSuccess(payment: any): void {
 
   console.log('PAYMENT SUCCESS:', payment);
 
+  // Oculta inmediatamente PayPal
   this.loading = true;
 
-  this.authService.getMembershipStatus().subscribe({
-
-    next: (response) => {
-
-      console.log(
-        'MEMBERSHIP AFTER PAYMENT:',
-        response
-      );
-
-      this.hasMembership =
-        response.hasMembership;
-
-      this.isActive =
-        response.isActive;
-
-      this.membership =
-        response.membership;
-
-      this.loading = false;
-
-    },
-
-    error: (error) => {
-
-      console.error(
-        'Error loading membership after payment:',
-        error
-      );
-
-      this.loading = false;
-
-    }
-
-  });
+  // Volver a consultar el estado real de la membership
+  this.loadMembership();
 
 }
 }

@@ -3,7 +3,8 @@ import {
   AfterViewInit,
   Output,
   EventEmitter,
-  Input
+  Input,
+  NgZone
 } from '@angular/core';
 
 import { PaypalService } from '../../services/paypal.service';
@@ -37,7 +38,8 @@ export class PaypalPaymentComponent implements AfterViewInit {
 
 
   constructor(
-    private paypalService: PaypalService
+    private paypalService: PaypalService,
+    private ngZone: NgZone
   ) {}
 
 
@@ -172,97 +174,191 @@ export class PaypalPaymentComponent implements AfterViewInit {
       // PAGO APROBADO
       // ==========================================
 
-      onApprove: async (data: any) => {
+   onApprove: async (data: any) => {
 
-        if (
-          this.paymentCompleted ||
-          this.processingPayment ||
-          this.paymentLocked
-        ) {
-          console.log('Duplicate payment attempt blocked.');
-          return;
-        }
+     this.ngZone.run(async () => {
 
-        this.paymentLocked = true;
-        this.processingPayment = true;
+       if (
+         this.paymentCompleted ||
+         this.processingPayment ||
+         this.paymentLocked
+       ) {
+         console.log('Duplicate payment blocked.');
+         return;
+       }
 
-        try {
+       this.paymentLocked = true;
+       this.processingPayment = true;
 
-          let result: any;
+       try {
 
-          // ==========================================
-          // NUEVO USUARIO
-          // NO TIENE TOKEN
-          // ==========================================
+         let result: any;
 
-          if (this.isRegistrationPayment) {
+         // ==========================================
+         // USUARIO NUEVO
+         // NO TIENE TOKEN
+         // ==========================================
+         if (this.isRegistrationPayment) {
 
-            result = await firstValueFrom(
-              this.paypalService.captureRegistrationOrder(
-                data.orderID
-              )
-            );
+           console.log(
+             'New registration payment'
+           );
 
-          } else {
+           result = await firstValueFrom(
+             this.paypalService.captureRegistrationOrder(
+               data.orderID
+             )
+           );
 
-            // ==========================================
-            // USUARIO YA REGISTRADO
-            // TIENE JWT / TOKEN
-            // ==========================================
+         } else {
 
-            result = await firstValueFrom(
-              this.paypalService.captureOrder(
-                data.orderID
-              )
-            );
+           // ==========================================
+           // USUARIO YA REGISTRADO
+           // TIENE TOKEN
+           // ==========================================
 
-          }
+           console.log(
+             'Authenticated user payment'
+           );
 
+           result = await firstValueFrom(
+             this.paypalService.captureOrder(
+               data.orderID
+             )
+           );
 
-          this.paypalOrderId = result.orderID;
-          this.paypalCaptureId = result.captureID;
-
-          // 🔒 Marcar inmediatamente como completado
-          this.paymentCompleted = true;
-          this.processingPayment = false;
-
-
-          this.paymentSuccess.emit({
-            orderID: result.orderID,
-            captureID: result.captureID,
-            amount: result.amount,
-            currency: result.currency
-          });
+         }
 
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Payment successful',
-            text: 'Your membership payment has been completed.',
-            confirmButtonColor: '#e91e63',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-          });
+         console.log(
+           'PAYMENT RESULT:',
+           result
+         );
 
-        } catch (error) {
 
-          console.error('PayPal capture error:', error);
+         if (
+           !result ||
+           result.status !== 'COMPLETED'
+         ) {
 
-          this.processingPayment = false;
+           throw new Error(
+             'Payment was not completed correctly.'
+           );
 
-          // Solo desbloquear porque el pago falló
-          this.paymentLocked = false;
+         }
 
-          Swal.fire({
-            icon: 'error',
-            title: 'Payment failed',
-            text: 'Unable to verify payment. Please try again.',
-            confirmButtonColor: '#e91e63'
-          });
 
-        }
+         // ==========================================
+         // GUARDAR RESULTADO
+         // ==========================================
 
-      },
+         this.paypalOrderId =
+           result.orderID;
+
+         this.paypalCaptureId =
+           result.captureID;
+
+         this.paymentCompleted = true;
+
+         this.processingPayment = false;
+
+
+         // ==========================================
+         // NOTIFICAR AL PADRE
+         // ==========================================
+
+       // ==========================================
+       // NOTIFICAR AL PADRE INMEDIATAMENTE
+       // ==========================================
+
+   this.paymentSuccess.emit({
+
+     orderID: result.orderID,
+     captureID: result.captureID,
+     amount: result.amount,
+     currency: result.currency,
+
+     isRegistrationPayment:
+       this.isRegistrationPayment,
+
+     membership:
+       result.membership || null
+
+   });
+
+
+   // ==========================================
+   // REGISTRO NUEVO
+   // ==========================================
+
+   if (this.isRegistrationPayment) {
+
+     Swal.fire({
+
+       icon: 'success',
+
+       title: 'Payment successful',
+
+       text:
+         'Your membership payment has been completed. Please complete your registration.',
+
+       confirmButtonColor:
+         '#e91e63'
+
+     });
+
+   }
+
+
+   // ==========================================
+   // USUARIO YA REGISTRADO
+   // ==========================================
+
+   else {
+
+     // No hacemos Swal aquí.
+     // El componente padre recibe paymentSuccess,
+     // pone loading = true y consulta nuevamente
+     // la membership.
+     //
+     // Esto destruye inmediatamente el componente
+     // PayPal y evita que el botón vuelva a aparecer.
+
+     console.log(
+       'Membership payment completed. Refreshing membership status.'
+     );
+
+   }
+
+       } catch (error) {
+
+         console.error(
+           'PayPal capture error:',
+           error
+         );
+
+         this.processingPayment = false;
+
+         if (!this.paymentCompleted) {
+
+           this.paymentLocked = false;
+
+         }
+
+         Swal.fire({
+           icon: 'error',
+           title: 'Payment failed',
+           text:
+             'Unable to verify payment. Please try again.',
+           confirmButtonColor:
+             '#e91e63'
+         });
+
+       }
+
+     });
+
+   },
 
 
       // ==========================================
@@ -354,5 +450,7 @@ export class PaypalPaymentComponent implements AfterViewInit {
     });
 
   }
+
+
 
 }
